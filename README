@@ -1,83 +1,43 @@
-                             ___   __
-                            | \ \ / /
-   ___ __ _ _ __ _ __   __ _| |\ V /
-  / __/ _` | '__| '_ \ / _` | | > <
- | (_| (_| | |  | |_) | (_| | |/ . \
-  \___\__,_|_|  | .__/ \__,_|_/_/ \_\
-                | |
-                |_| v0.12
+# Carpalx Keyboard Optimizer
 
- carpalX - keyboard layout optimizer - save your carpals
+**Carpalx** is a keyboard layout optimizer that uses simulated annealing to find layouts that minimize typing effort. This repository contains a Python port of the original Perl implementation, provided as a Jupyter Notebook for easy experimentation in Google Colab.
 
- http://mkweb.bcgsc.ca/carpalx
+## Usage
 
- Martin Krzywinski <martink@bcgsc.ca>
+### Jupyter Notebook (Google Colab)
 
+The primary artifact is `carpalx.ipynb`. This notebook is self-contained and includes:
 
-ORIENTATION
+*   **Configuration**: All effort models, weights, and parameters are embedded.
+*   **Logic**: The core optimization algorithms (Simulated Annealing) ported to Python.
+*   **Visualization**: Tools to visualize keyboard layouts.
 
-Lots of typing for 10 years can leave your hands looking like cranky
-twigs. Moving that pinky over and over again and rotating the
-wrist. Ouch. Your fingers deserve better.
+**To use:**
+1.  Open `carpalx.ipynb` in Google Colab or a local Jupyter environment.
+2.  Run the cells.
+3.  Upload your own corpus text file (e.g., `corpus.txt`) when prompted or ensure it exists in the working directory.
+4.  The notebook will output the optimized layout and effort statistics.
 
-carpalx is a keyboard layout optimizer. Given a training corpus
-(e.g. English text) and parameters that describe typing effort,
-carpalx uses simulated annealing to find a keyboard layout to minimize
-typing effort.
+### Python Script
 
-Typing effort is modeled using three contributions
+A standalone Python script `carpalx.py` is also provided.
 
- - base effort derived from finger travel distance
- - row, hand and finger penalties to limit use of weaker fingers/hands
-      and distinguish harder-to-reach keys
- - stroke path effort, a complex figure of merit that rates the effort
-      based on finger, row and hand alternation (e.g. asd is much easier to
-      type than sad - this is captured by the stroke path effort)
+```bash
+python3 carpalx.py -conf etc/carpalx.conf
+```
 
+Note: The script relies on configuration files in `etc/`.
 
-INSTALLATION
+## Legacy Perl Implementation
 
-To install, untar the distribution
+The original Perl implementation has been moved to the `legacy/` directory.
 
-  > tar xcvf carpalx-x.xx.tgz
-  > cd carpax-x.xx
+*   `legacy/bin/`: Original Perl scripts (`carpalx`, `generatetriads`, etc.)
 
-Binaries are in bin/ and the first line of each script should be
-adjusted to reflect the location of your perl binary. For example, if
-you are using /usr/bin/perl, then change
+## Original Documentation
 
-  #!/usr/local/bin/perl
+See http://mkweb.bcgsc.ca/carpalx for the original project documentation and theory behind the effort models.
 
-to
+## License
 
-  #!/usr/bin/perl
-
-Each script has a manpage that can be accessed using -man. For example,
-
-  bin/generatetriads -man
-
-For brief usage, 
-
-  bin/generatetriads -h
-
-
-CONFIGURATION
-
-Optimization is performed by the carpalx script and all others in bin/
-are utility scripts that are not necessary for carpalx. However, they
-are helpful in generated useful data files (e.g. triad lists).
-
-carpalx uses an Apache-like configuration file which defines
-variable-value pairs that control the script. Several configuration
-files are found in etc/ and these are discussed in the online
-tutorials (etc/tutorial-xx.conf).
-
-Documentation for carpalx is available in the form of tutorials, e.g.
-
-  http://mkweb.bcgsc.ca/carpalx/?keyboard_statistics
-
-
-EXPERIMENTATION
-
-carpalx is a sandbox keyboard simulator - experiment, have fun and
-drop me a line if you find anything interesting!
+See original license information in source files.
