@@ -177,6 +177,7 @@
 			font-size: .9rem;
 			opacity: .8;
 			line-height: 1.6;
+            margin-bottom: 2rem;
 		}
 		@media(max-width: 768px) {
 			.selectors {
@@ -406,12 +407,12 @@
             </div>
         </div>
 
-        <div class="row" style="margin-top: 1.5rem;">
+        <div class="row" style="margin-top: 2rem;">
             <div class="group">
-                <label id="corpusLabel" for="corpusInput"></label>
-                <textarea id="corpusInput" placeholder="Enter text to analyze and optimize for..."></textarea>
-                <div style="margin-top: 0.5rem;">
+                <label id="corpusLabel" for="corpusFile"></label>
+                <div style="display: flex; align-items: center; gap: 1rem;">
                     <input type="file" id="corpusFile" accept=".txt" style="width: auto; font-size: 0.8rem;">
+                    <span id="fileNameDisplay" class="info" style="font-weight: 500;">No file loaded</span>
                 </div>
             </div>
         </div>
@@ -452,14 +453,15 @@
 				autoTheme: 'Auto Theme',
 				lightTheme: 'Light',
 				darkTheme: 'Dark',
-                corpusLabel: 'Training Corpus',
+                corpusLabel: 'Training Corpus (.txt)',
                 optimizeBtn: 'Start Optimization',
                 resetBtn: 'Reset to QWERTY',
                 effortLabel: 'Typing Effort',
                 iterationsLabel: 'Iterations / Swaps',
                 tempLabel: 'Temperature',
                 optimizing: 'Stop Optimization',
-                placeholder: 'Enter text to analyze and optimize for...',
+                noFileLoaded: 'No file loaded',
+                fileLoaded: 'File loaded: ',
                 optimizationParamsTitle: 'Optimization Settings',
                 penaltyParamsTitle: 'Penalty Parameters',
                 maxSwapsLabel: 'Max Swaps',
@@ -475,14 +477,15 @@
 				autoTheme: 'Tema Otomatis',
 				lightTheme: 'Terang',
 				darkTheme: 'Gelap',
-                corpusLabel: 'Korpus Pelatihan',
+                corpusLabel: 'Korpus Pelatihan (.txt)',
                 optimizeBtn: 'Mulai Optimasi',
                 resetBtn: 'Reset ke QWERTY',
                 effortLabel: 'Upaya Pengetikan',
                 iterationsLabel: 'Iterasi / Pertukaran',
                 tempLabel: 'Suhu',
                 optimizing: 'Hentikan Optimasi',
-                placeholder: 'Masukkan teks untuk dianalisis dan dioptimalkan...',
+                noFileLoaded: 'Belum ada berkas',
+                fileLoaded: 'Berkas dimuat: ',
                 optimizationParamsTitle: 'Pengaturan Optimasi',
                 penaltyParamsTitle: 'Parameter Penalti',
                 maxSwapsLabel: 'Maks Pertukaran',
@@ -501,6 +504,7 @@
                 this.optimizing = false;
                 this.iteration = 0;
                 this.bestEffort = Infinity;
+                this.corpusText = '';
 
 				this.setup();
 				this.theme('auto');
@@ -515,7 +519,6 @@
                 elements.optimizeBtn.onclick = () => this.toggleOptimize();
                 elements.resetBtn.onclick = () => this.reset();
                 elements.resetParamsBtn.onclick = () => this.resetParams();
-                elements.corpusInput.oninput = () => this.updateEffort();
                 elements.optModeSelect.onchange = () => this.updateModeUI();
                 elements.baseLayoutSelect.onchange = () => this.changeBaseLayout();
                 elements.restrictSameRow.onchange = () => {
@@ -607,8 +610,9 @@
             async loadFile(event) {
                 const file = event.target.files[0];
                 if (!file) return;
-                const text = await file.text();
-                elements.corpusInput.value = text;
+                this.currentFileName = file.name;
+                this.corpusText = await file.text();
+                this.updateFileNameDisplay();
                 this.updateEffort();
             }
 
@@ -623,10 +627,18 @@
 			lang(language) {
 				this.language = elements.language.value = document.documentElement.lang = language;
 				Object.keys(textTranslations.en).forEach(key => { if (elements[key]) elements[key].textContent = this.string(key); });
-                if (elements.corpusInput) elements.corpusInput.placeholder = this.string('placeholder');
 				[...elements.theme.options].forEach(option => option.textContent = this.string(option.value + 'Theme'));
                 elements.optimizeBtn.textContent = this.string(this.optimizing ? 'optimizing' : 'optimizeBtn');
+                this.updateFileNameDisplay();
 			}
+
+            updateFileNameDisplay() {
+                if (this.corpusText) {
+                    elements.fileNameDisplay.textContent = this.string('fileLoaded') + (this.currentFileName || '');
+                } else {
+                    elements.fileNameDisplay.textContent = this.string('noFileLoaded');
+                }
+            }
 
             renderKeyboard() {
                 elements.keyboard.innerHTML = '';
@@ -646,20 +658,12 @@
                 });
             }
 
-            getTriads(text) {
-                let line = text.toLowerCase().replace(/[^a-z]/g, '');
-                let triads = {};
-                for (let i = 0; i < line.length - 2; i++) {
-                    let triad = line.substring(i, i + 3);
-                    if (triad[0] === triad[1] && triad[1] === triad[2]) continue;
-                    triads[triad] = (triads[triad] || 0) + 1;
-                }
-                return triads;
-            }
-
             updateEffort() {
-                const text = elements.corpusInput.value;
-                const triads = this.getTriads(text);
+                if (!this.corpusText) {
+                    elements.totalEffort.textContent = '0.000000';
+                    return 0;
+                }
+                const triads = this.carpalx.getTriads(this.corpusText);
                 const effort = this.carpalx.calculateEffort(triads);
                 elements.totalEffort.textContent = effort.toFixed(6);
                 return effort;
@@ -672,10 +676,8 @@
                     return;
                 }
 
-                const text = elements.corpusInput.value;
-                if (!text) return;
-                const triads = this.getTriads(text);
-                if (Object.keys(triads).length === 0) return;
+                if (!this.corpusText) return;
+                const triads = this.carpalx.getTriads(this.corpusText);
 
                 this.optimizing = true;
                 elements.optimizeBtn.textContent = this.string('optimizing');
@@ -729,7 +731,7 @@
                     let k2 = relocatable[k2_idx];
 
                     if (this.carpalx.restrictSameRow) {
-                        const sameRowKeys = relocatable.filter(rk => rk.r === k1.r && (rk.r !== k1.r || rk.c !== k1.c));
+                        const sameRowKeys = relocatable.filter(rk => rk[0] === k1[0] && (rk[0] !== k1[0] || rk[1] !== k1[1]));
                         if (sameRowKeys.length === 0) continue;
                         k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
                     } else {
@@ -806,6 +808,10 @@
             reset() {
                 this.optimizing = false;
                 this.carpalx = new Carpalx();
+                this.corpusText = '';
+                this.currentFileName = '';
+                elements.corpusFile.value = '';
+                this.updateFileNameDisplay();
                 this.resetParams();
                 this.renderKeyboard();
                 this.updateEffort();

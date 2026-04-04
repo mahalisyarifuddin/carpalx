@@ -312,10 +312,14 @@ class Keyboard:
             print("Warning: No finger distance (base effort) defined.")
             return
         fd_rows = em['finger_distance']['row']
+
+        # Row penalties are 0-indexed in Perl config (0, 1, 2, 3)
+        # Base efforts are 1-indexed in Perl config (1, 2, 3, 4)
         for r in range(len(self.keys)):
-            r_key = str(r + 1)
-            if r_key in fd_rows:
-                efforts = [float(x) for x in fd_rows[r_key]['effort'].split()]
+            r_key_base = str(r + 1)
+            r_key_penalty = str(r)
+            if r_key_base in fd_rows:
+                efforts = [float(x) for x in fd_rows[r_key_base]['effort'].split()]
                 for c, key in enumerate(self.keys[r]):
                     if c < len(efforts):
                         base_effort = efforts[c]
@@ -327,7 +331,7 @@ class Keyboard:
                         base_penalty = float(penalties['default'])
                         h_str = 'right' if key['hand'] == 1 else 'left'
                         p_hand = float(penalties['hand'].get(h_str, 0))
-                        p_row = float(penalties['row'].get(str(r), 0))
+                        p_row = float(penalties['row'].get(r_key_penalty, 0))
                         f_str = 'left' if key['hand'] == 0 else 'right'
                         f_vals = [float(x) for x in penalties['finger'][f_str].split()]
                         f_idx = key['finger'] if key['hand'] == 0 else key['finger'] - 5
@@ -354,6 +358,7 @@ class Keyboard:
         path_cost_conf = self.config['effort_model'].get('path_cost', {})
 
         for triad, freq in triads.items():
+            if len(triad) != 3: continue
             c1, c2, c3 = triad
             if c1 not in self.map or c2 not in self.map or c3 not in self.map: continue
             k1_obj = self.map[c1]
@@ -399,19 +404,26 @@ class Keyboard:
             elif f2 == f3:
                 if k1['lc'] != k2['lc'] and k2['lc'] != k3['lc'] and k1['lc'] != k3['lc']: finger_flag = 7
                 else: finger_flag = 5
-        row_flag = 5
-        dr = sorted([abs(r1-r2), abs(r1-r3), abs(r2-r3)], reverse=True)
-        drmax = dr[0]
+        row_flag = 0
+        diffs = [
+            (abs(r1 - r2), r1 - r2),
+            (abs(r1 - r3), r1 - r3),
+            (abs(r2 - r3), r2 - r3)
+        ]
+        # Sort by absolute difference descending, then by original value ascending
+        diffs.sort(key=lambda x: (-x[0], x[1]))
+        drmax_abs, drmax = diffs[0]
+
         if r1 < r2:
             if r3 == r2: row_flag = 1
             elif r2 < r3: row_flag = 4
-            elif drmax == 1: row_flag = 3
-            else: row_flag = 7
+            elif drmax_abs == 1: row_flag = 3
+            else: row_flag = 7 if drmax < 0 else 5
         elif r1 > r2:
             if r3 == r2: row_flag = 2
             elif r2 > r3: row_flag = 6
-            elif drmax == 1: row_flag = 3
-            else: row_flag = 7
+            elif drmax_abs == 1: row_flag = 3
+            else: row_flag = 7 if drmax < 0 else 5
         else:
             if r2 > r3: row_flag = 2
             elif r2 < r3: row_flag = 1
@@ -428,6 +440,8 @@ class Keyboard:
         # If path_key exists in config, use it directly as in the original Perl implementation.
         # Otherwise, calculate it using fh, fr, ff weights.
         if path_key in path_cost_conf:
+            # Special case for Perl's 000 triad (not defined in path cost config)
+            # which returns path_offset (since 0 is the default in config.get)
             return path_offset + float(cost_str)
         else:
             return path_offset + (fh * hand_flag + fr * row_flag + ff * finger_flag)
@@ -588,6 +602,8 @@ class SimulatedAnnealing:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Carpalx Keyboard Optimizer (Python Port)')
     parser.add_argument('-conf', dest='configfile', help='Configuration file', required=False)
+    parser.add_argument('-corpus', dest='corpus', help='Training corpus', required=False)
+    parser.add_argument('-action', dest='action', help='Actions to perform', required=False)
     args = parser.parse_args()
     conf_file = args.configfile if args.configfile else 'etc/carpalx.conf'
     if not os.path.exists(conf_file):
@@ -597,4 +613,6 @@ if __name__ == '__main__':
             print("Configuration file not found.")
             sys.exit(1)
     app = Carpalx(conf_file)
+    if args.corpus: app.config['corpus'] = args.corpus
+    if args.action: app.config['action'] = args.action
     app.run()

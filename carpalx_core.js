@@ -347,15 +347,13 @@ class Carpalx {
             }
 
             let row_flag = 0;
-            let r_diff12 = r1 - r2;
-            let r_diff13 = r1 - r3;
-            let r_diff23 = r2 - r3;
             let diffs = [
-                { abs: Math.abs(r_diff12), val: r_diff12 },
-                { abs: Math.abs(r_diff13), val: r_diff13 },
-                { abs: Math.abs(r_diff23), val: r_diff23 }
+                { abs: Math.abs(r1 - r2), val: r1 - r2 },
+                { abs: Math.abs(r1 - r3), val: r1 - r3 },
+                { abs: Math.abs(r2 - r3), val: r2 - r3 }
             ];
-            diffs.sort((a, b) => (b.abs - a.abs) || (a.val - b.val));
+            // Sort by absolute difference descending, then by original value ascending
+            diffs.sort((a, b) => (b.abs !== a.abs) ? (b.abs - a.abs) : (a.val - b.val));
             let drmax_abs = diffs[0].abs;
             let drmax = diffs[0].val;
 
@@ -363,14 +361,12 @@ class Carpalx {
                 if (r3 === r2) row_flag = 1;
                 else if (r2 < r3) row_flag = 4;
                 else if (drmax_abs === 1) row_flag = 3;
-                else if (drmax < 0) row_flag = 7;
-                else row_flag = 5;
+                else row_flag = (drmax < 0) ? 7 : 5;
             } else if (r1 > r2) {
                 if (r3 === r2) row_flag = 2;
                 else if (r2 > r3) row_flag = 6;
                 else if (drmax_abs === 1) row_flag = 3;
-                else if (drmax < 0) row_flag = 7;
-                else row_flag = 5;
+                else row_flag = (drmax < 0) ? 7 : 5;
             } else {
                 if (r2 > r3) row_flag = 2;
                 else if (r2 < r3) row_flag = 1;
@@ -412,6 +408,26 @@ class Carpalx {
             }
         }
         return list;
+    }
+
+    getTriads(text) {
+        let triads = {};
+        const lines = text.split(/\r?\n/);
+        for (let line of lines) {
+            // Match Perl English mode:
+            // 1. remove all whitespace
+            // 2. lowercase
+            // 3. remove [\W_0-9] (which leaves only a-z)
+            line = line.replace(/\s/g, '').toLowerCase().replace(/[\W_0-9]/g, '');
+            if (line.length < 3) continue;
+            for (let i = 0; i < line.length - 2; i++) {
+                let triad = line.substring(i, i + 3);
+                // Perl's english mode doesn't allow repeated triads by default (accept_repeats = no)
+                if (triad[0] === triad[1] && triad[1] === triad[2]) continue;
+                triads[triad] = (triads[triad] || 0) + 1;
+            }
+        }
+        return triads;
     }
 
     findBestSwap(triads) {

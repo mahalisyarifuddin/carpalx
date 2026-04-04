@@ -9,10 +9,10 @@
 Alat HTML-JS mandiri untuk optimasi instan di browser Anda.
 
 *   **Visualisasi Keyboard**: Perenderan tata letak secara real-time.
-*   **Analisis Instan**: Hitung upaya untuk teks apa pun secara langsung.
-*   **Optimasi**: Jalankan simulated annealing langsung di browser.
+*   **Analisis Berbasis File**: Unggah korpus `.txt` untuk perhitungan upaya yang tepat dan pelatihan optimasi.
+*   **Optimasi**: Jalankan simulated annealing langsung di browser dengan penalti yang dapat dikonfigurasi dan batasan baris.
 
-**Cara penggunaan:** Buka `carpalx.html` di browser web modern mana pun.
+**Cara penggunaan:** Buka `carpalx.html` di browser web modern mana pun. Unggah file teks untuk memulai analisis atau optimasi.
 
 ### 2. Buku Catatan Google Colab (`carpalx.ipynb`)
 

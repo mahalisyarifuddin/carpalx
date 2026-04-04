@@ -9,10 +9,10 @@
 A standalone HTML-JS tool for instant optimization in your browser.
 
 *   **Keyboard Visualization**: Real-time layout rendering.
-*   **Instant Analysis**: Calculate effort for any text immediately.
-*   **Optimization**: Run simulated annealing directly in the browser.
+*   **File-Based Analysis**: Upload `.txt` corpora for precise effort calculation and optimization training.
+*   **Optimization**: Run simulated annealing directly in the browser with configurable penalties and row constraints.
 
-**To use:** Open `carpalx.html` in any modern web browser.
+**To use:** Open `carpalx.html` in any modern web browser. Upload a text file to begin analysis or optimization.
 
 ### 2. Google Colab Notebook (`carpalx.ipynb`)
 
