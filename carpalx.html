@@ -1209,9 +1209,8 @@ const textTranslations = {
                 this.carpalx.keys.forEach((row, r) => {
                     const rowEl = document.createElement('div');
                     rowEl.className = 'kb-row';
-                // Staggering to align 1, q, a, z (gamers' WASD cluster)
-                // Row 1 shifted by 1 key width (45+4=49px) relative to Row 0
-                const offsets = [0, 49, 49, 49];
+                // User-requested staggering to align 1, q, a, z (gamers' WASD cluster)
+                const offsets = [0, 132, 66, 66];
                     rowEl.style.paddingLeft = offsets[r] + 'px';
 
                     row.forEach((key, c) => {
