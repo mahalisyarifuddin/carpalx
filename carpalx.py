@@ -313,7 +313,7 @@ class Keyboard:
                         base_penalty = float(penalties['default'])
                         h_str = 'right' if key['hand'] == 1 else 'left'
                         p_hand = float(penalties['hand'].get(h_str, 0))
-                        p_row = float(penalties['row'].get(r_key, 0))
+                        p_row = float(penalties['row'].get(str(r), 0))
                         f_str = 'left' if key['hand'] == 0 else 'right'
                         f_vals = [float(x) for x in penalties['finger'][f_str].split()]
                         f_idx = key['finger'] if key['hand'] == 0 else key['finger'] - 5
@@ -351,8 +351,8 @@ class Keyboard:
             pe1 = k1_obj['effort']['penalty']
             pe2 = k2_obj['effort']['penalty']
             pe3 = k3_obj['effort']['penalty']
-            term_base = k1*be1 * (1 + k2*be2 * (1 + k3*be3))
-            term_penalty = k1*pe1 * (1 + k2*pe2 * (1 + k3*pe3))
+            term_base = k1 * be1 * (1 + k2 * be2 * (1 + k3 * be3))
+            term_penalty = k1 * pe1 * (1 + k2 * pe2 * (1 + k3 * pe3))
             triad_effort = kb * term_base + kp * term_penalty
             if ks != 0:
                 path_effort = self._calculate_path_effort(k1_obj, k2_obj, k3_obj, path_cost_conf)
@@ -469,8 +469,11 @@ class Corpus:
                 elif force_case == 'uc': line = line.upper()
                 if reject_char_rx: line = re.sub(reject_char_rx, '', line)
                 line = re.sub(r'\s', '', line)
+                accept_repeats = mode.get('accept_repeats', 'yes') in ['yes', '1', 1, True]
                 for i in range(len(line) - 2):
                     triad = line[i:i+3]
+                    if not accept_repeats and triad[0] == triad[1] == triad[2]:
+                        continue
                     self.triads[triad] += 1
         min_freq = int(self.config.get('triads_min_freq', 0))
         if min_freq > 0:

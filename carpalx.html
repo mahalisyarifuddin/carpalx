@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Carpalx Keyboard Optimizer</title>
+	<style>
+		:root {
+			--primary: #005dac;
+			--on-primary: #ffffff;
+			--hover: #00539a;
+			--background: #f9f9ff;
+			--surface: #ffffff;
+			--text: #181c21;
+			--border: #c1c6d4;
+			--muted: #f2f3fc;
+			--success: #0b6b1d;
+			--on-success: #ffffff;
+			--danger: #ba1a1a;
+			--on-danger: #ffffff;
+			--highlight-bg: #d4e3ff;
+		}
+		@media (prefers-color-scheme: dark) {
+			:root:not(.light) {
+				--primary: #a5c8ff;
+				--on-primary: #00315f;
+				--hover: #72adff;
+				--background: #101319;
+				--surface: #0b0e14;
+				--text: #e0e2ea;
+				--border: #414752;
+				--muted: #181c21;
+				--success: #82db7e;
+				--on-success: #00390a;
+				--danger: #ffb4ab;
+				--on-danger: #93000a;
+				--highlight-bg: #001c3a;
+			}
+		}
+		:root.dark {
+			--primary: #a5c8ff;
+			--on-primary: #00315f;
+			--hover: #72adff;
+			--background: #101319;
+			--surface: #0b0e14;
+			--text: #e0e2ea;
+			--border: #414752;
+			--muted: #181c21;
+			--success: #82db7e;
+			--on-success: #00390a;
+			--danger: #ffb4ab;
+			--on-danger: #93000a;
+			--highlight-bg: #001c3a;
+		}
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+			outline-offset: 2px;
+		}
+		*:focus-visible {
+			outline: 2px solid var(--primary);
+		}
+		body {
+			background: var(--background);
+			color: var(--text);
+			font-family: sans-serif;
+			display: flex;
+			justify-content: center;
+			min-height: 100vh;
+			padding: 1rem;
+		}
+		.container {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			max-width: 960px;
+			padding: 2rem;
+			width: 100%;
+			position: relative;
+			margin: 2rem 0;
+		}
+		.hidden {
+			display: none !important;
+		}
+		h1, h2, h3, label {
+			margin: .5rem 0;
+		}
+		label {
+			display: block;
+			font-weight: 700;
+		}
+		input, select, button, textarea {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			color: var(--text);
+			font-size: 1rem;
+			padding: .5rem;
+			width: 100%;
+		}
+		textarea {
+			resize: vertical;
+			min-height: 120px;
+		}
+		button {
+			cursor: pointer;
+		}
+		button:disabled {
+			opacity: .6;
+			cursor: not-allowed;
+		}
+		.primary {
+			background: var(--primary);
+			color: var(--on-primary);
+			border: 0;
+		}
+		.primary:hover:not(:disabled) {
+			background: var(--hover);
+		}
+		.secondary:hover:not(:disabled) {
+			background: var(--muted);
+		}
+		.danger {
+			background: var(--danger);
+			color: var(--on-danger);
+			border: 0;
+		}
+		.success {
+			background: var(--success);
+			color: var(--on-success);
+			border: 0;
+		}
+		.selectors {
+			position: absolute;
+			right: 2rem;
+			top: 1rem;
+			display: flex;
+			gap: 8px;
+		}
+		.selectors select {
+			width: auto;
+			font-size: .9rem;
+		}
+		.row {
+			display: flex;
+			gap: 1rem;
+			margin-bottom: 1rem;
+		}
+		.group {
+			flex: 1;
+		}
+		table {
+			border-collapse: collapse;
+			margin-top: 1rem;
+			width: 100%;
+			font-size: .9rem;
+		}
+		th, td {
+			border: 1px solid var(--border);
+			padding: .5rem;
+			text-align: left;
+		}
+		th {
+			background: var(--primary);
+			color: var(--on-primary);
+		}
+		.error {
+			color: var(--danger);
+			font-size: .9rem;
+			margin: 1rem 0;
+			display: block;
+			font-weight: 500;
+		}
+		.info {
+			font-size: .9rem;
+			opacity: .8;
+			line-height: 1.6;
+		}
+		@media(max-width: 768px) {
+			.selectors {
+				position: static;
+				justify-content: end;
+				margin-bottom: .5rem;
+			}
+			.row {
+				flex-direction: column;
+			}
+		}
+
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 1.5rem 0;
+            user-select: none;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+        .kb-row {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            min-width: 650px;
+        }
+        .key {
+            width: 45px;
+            height: 45px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--muted);
+            font-size: 0.8rem;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .key .uc { font-weight: bold; }
+        .key .lc { font-size: 0.75rem; color: var(--text); opacity: 0.8; }
+        .key.relocatable { border-color: var(--primary); background: var(--surface); }
+        .key.highlight { background: var(--highlight-bg); border-color: var(--primary); }
+
+        .stats {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        .stat-card {
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 4px;
+            background: var(--surface);
+        }
+        .stat-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .stat-val { font-size: 1.25rem; font-weight: bold; color: var(--primary); font-family: monospace; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="selectors">
+			<select id="language"><option value="en">English</option><option value="id">Bahasa Indonesia</option></select>
+			<select id="theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select>
+		</div>
+		<h1 id="title"></h1>
+		<p id="subtitle" class="info"></p>
+
+        <div class="row" style="margin-top: 1.5rem;">
+            <div class="group">
+                <label id="corpusLabel" for="corpusInput"></label>
+                <textarea id="corpusInput" placeholder="Enter text to analyze and optimize for..."></textarea>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="group">
+                <button id="optimizeBtn" class="primary"></button>
+            </div>
+            <div class="group">
+                <button id="resetBtn" class="secondary"></button>
+            </div>
+        </div>
+
+        <div id="keyboard" class="keyboard"></div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div id="effortLabel" class="stat-label"></div>
+                <div id="totalEffort" class="stat-val">0.000000</div>
+            </div>
+            <div class="stat-card">
+                <div id="iterationsLabel" class="stat-label"></div>
+                <div id="iterations" class="stat-val">0</div>
+            </div>
+            <div class="stat-card">
+                <div id="tempLabel" class="stat-label"></div>
+                <div id="temperature" class="stat-val">0.000000</div>
+            </div>
+        </div>
+
+	</div>
+    <script src="carpalx_core.js"></script>
+	<script>
+		const textTranslations = {
+			en: {
+				title: 'Carpalx Keyboard Optimizer',
+				subtitle: 'Optimize your keyboard layout using simulated annealing based on typing effort models.',
+				autoTheme: 'Auto Theme',
+				lightTheme: 'Light',
+				darkTheme: 'Dark',
+                corpusLabel: 'Training Corpus',
+                optimizeBtn: 'Start Optimization',
+                resetBtn: 'Reset to QWERTY',
+                effortLabel: 'Typing Effort',
+                iterationsLabel: 'Iterations',
+                tempLabel: 'Temperature',
+                optimizing: 'Stop Optimization',
+                placeholder: 'Enter text to analyze and optimize for...'
+			},
+			id: {
+				title: 'Optimasi Keyboard Carpalx',
+				subtitle: 'Optimalkan tata letak keyboard Anda menggunakan simulated annealing berdasarkan model upaya pengetikan.',
+				autoTheme: 'Tema Otomatis',
+				lightTheme: 'Terang',
+				darkTheme: 'Gelap',
+                corpusLabel: 'Korpus Pelatihan',
+                optimizeBtn: 'Mulai Optimasi',
+                resetBtn: 'Reset ke QWERTY',
+                effortLabel: 'Upaya Pengetikan',
+                iterationsLabel: 'Iterasi',
+                tempLabel: 'Suhu',
+                optimizing: 'Hentikan Optimasi',
+                placeholder: 'Masukkan teks untuk dianalisis dan dioptimalkan...'
+			}
+		};
+		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
+
+		class CarpalxOptimizer {
+			constructor() {
+                this.carpalx = new Carpalx();
+                this.optimizing = false;
+                this.iteration = 0;
+                this.bestEffort = Infinity;
+
+				this.setup();
+				this.theme('auto');
+				this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+				this.lang(this.language);
+                this.renderKeyboard();
+			}
+
+			setup() {
+				elements.language.onchange = event => this.lang(event.target.value);
+				elements.theme.onchange = event => this.theme(event.target.value);
+                elements.optimizeBtn.onclick = () => this.toggleOptimize();
+                elements.resetBtn.onclick = () => this.reset();
+                elements.corpusInput.oninput = () => this.updateEffort();
+			}
+
+			string(key) { return textTranslations[this.language]?.[key] ?? key; }
+			format(value, options = {}) { return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US', options); }
+
+			theme(themeName) {
+				document.documentElement.className = themeName === 'auto' ? '' : themeName;
+				elements.theme.value = themeName;
+			}
+
+			lang(language) {
+				this.language = elements.language.value = document.documentElement.lang = language;
+				Object.keys(textTranslations.en).forEach(key => { if (elements[key]) elements[key].textContent = this.string(key); });
+                if (elements.corpusInput) elements.corpusInput.placeholder = this.string('placeholder');
+				[...elements.theme.options].forEach(option => option.textContent = this.string(option.value + 'Theme'));
+                elements.optimizeBtn.textContent = this.string(this.optimizing ? 'optimizing' : 'optimizeBtn');
+			}
+
+            renderKeyboard() {
+                elements.keyboard.innerHTML = '';
+                this.carpalx.keys.forEach((row, r) => {
+                    const rowEl = document.createElement('div');
+                    rowEl.className = 'kb-row';
+                    // Add spacers for rows to look like a keyboard
+                    const offsets = [0, 20, 35, 50];
+                    rowEl.style.paddingLeft = offsets[r] + 'px';
+
+                    row.forEach((key, c) => {
+                        const keyEl = document.createElement('div');
+                        keyEl.className = 'key' + (this.carpalx.mask[r][c] ? ' relocatable' : '');
+                        keyEl.innerHTML = `<span class="uc">${key.uc}</span><span class="lc">${key.lc}</span>`;
+                        rowEl.appendChild(keyEl);
+                    });
+                    elements.keyboard.appendChild(rowEl);
+                });
+            }
+
+            getTriads(text) {
+                // English mode logic: lowercase, reject non-letters, reject repeats
+                let line = text.toLowerCase().replace(/[^a-z]/g, '');
+                let triads = {};
+                for (let i = 0; i < line.length - 2; i++) {
+                    let triad = line.substring(i, i + 3);
+                    if (triad[0] === triad[1] && triad[1] === triad[2]) continue;
+                    triads[triad] = (triads[triad] || 0) + 1;
+                }
+                return triads;
+            }
+
+            updateEffort() {
+                const text = elements.corpusInput.value;
+                const triads = this.getTriads(text);
+                const effort = this.carpalx.calculateEffort(triads);
+                elements.totalEffort.textContent = effort.toFixed(6);
+                return effort;
+            }
+
+            async toggleOptimize() {
+                if (this.optimizing) {
+                    this.optimizing = false;
+                    elements.optimizeBtn.textContent = this.string('optimizeBtn');
+                    return;
+                }
+
+                const text = elements.corpusInput.value;
+                if (!text) return;
+                const triads = this.getTriads(text);
+                if (Object.keys(triads).length === 0) return;
+
+                this.optimizing = true;
+                elements.optimizeBtn.textContent = this.string('optimizing');
+
+                const maxIterations = 5000;
+                const t0 = 10;
+                const k = 10;
+                const p0 = 1;
+                const relocatable = this.carpalx.getRelocatableKeys();
+
+                let currentEffort = this.carpalx.calculateEffort(triads);
+                this.bestEffort = currentEffort;
+
+                for (let i = 1; i <= maxIterations && this.optimizing; i++) {
+                    const k1_idx = Math.floor(Math.random() * relocatable.length);
+                    let k2_idx = Math.floor(Math.random() * relocatable.length);
+                    while (k1_idx === k2_idx) k2_idx = Math.floor(Math.random() * relocatable.length);
+
+                    const k1 = relocatable[k1_idx];
+                    const k2 = relocatable[k2_idx];
+
+                    this.carpalx.swapKeys(k1, k2);
+                    const newEffort = this.carpalx.calculateEffort(triads);
+                    const deffort = newEffort - currentEffort;
+                    const t = t0 * Math.exp(-i * k / maxIterations);
+
+                    let accept = false;
+                    if (deffort < 0) {
+                        accept = true;
+                    } else {
+                        const p = p0 * Math.exp(-deffort / t);
+                        if (Math.random() < p) accept = true;
+                    }
+
+                    if (accept) {
+                        currentEffort = newEffort;
+                        if (currentEffort < this.bestEffort) {
+                            this.bestEffort = currentEffort;
+                            this.renderKeyboard();
+                        }
+                    } else {
+                        this.carpalx.swapKeys(k1, k2);
+                    }
+
+                    if (i % 20 === 0) {
+                        elements.iterations.textContent = i;
+                        elements.temperature.textContent = t.toFixed(6);
+                        elements.totalEffort.textContent = currentEffort.toFixed(6);
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+
+                this.optimizing = false;
+                elements.optimizeBtn.textContent = this.string('optimizeBtn');
+                this.renderKeyboard();
+            }
+
+            reset() {
+                this.optimizing = false;
+                this.carpalx = new Carpalx();
+                this.renderKeyboard();
+                this.updateEffort();
+                elements.iterations.textContent = '0';
+                elements.temperature.textContent = '0.000000';
+            }
+		}
+		new CarpalxOptimizer();
+	</script>
+</body>
+</html>
