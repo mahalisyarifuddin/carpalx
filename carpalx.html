@@ -241,11 +241,42 @@
         .panel {
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1rem;
             margin-bottom: 1.5rem;
             background: var(--muted);
+            overflow: hidden;
         }
-        .panel h3 { margin-top: 0; font-size: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .panel-header {
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-header:hover {
+            background: var(--muted);
+        }
+        .panel-header h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        .panel-content {
+            padding: 1rem;
+        }
+        .panel-content.collapsed {
+            display: none;
+        }
+        .toggle-icon::after {
+            content: '▼';
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .panel-header.collapsed .toggle-icon::after {
+            transform: rotate(-90deg);
+        }
         .grid-params {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -264,8 +295,12 @@
 		<h1 id="title"></h1>
 		<p id="subtitle" class="info"></p>
 
-        <div class="panel">
-            <h3 id="optimizationParamsTitle">Optimization Settings</h3>
+        <div class="panel" id="optimizationPanel">
+            <div class="panel-header">
+                <h3 id="optimizationParamsTitle">Optimization Settings</h3>
+                <span class="toggle-icon"></span>
+            </div>
+            <div class="panel-content">
             <div class="row">
                 <div class="group">
                     <label id="baseLayoutLabel" for="baseLayoutSelect">Base Layout</label>
@@ -303,11 +338,16 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
 
-        <div class="panel">
+        <div class="panel" id="penaltyPanel">
+            <div class="panel-header">
+                <h3 id="penaltyParamsTitle">Penalty Parameters</h3>
+                <span class="toggle-icon"></span>
+            </div>
+            <div class="panel-content">
             <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <h3 id="penaltyParamsTitle" style="margin: 0; border: 0;">Penalty Parameters</h3>
                 <button id="resetParamsBtn" class="secondary" style="width: auto; padding: 0.25rem 0.75rem; font-size: 0.8rem;"></button>
             </div>
             <div class="grid-params">
@@ -362,6 +402,7 @@
                         <input type="number" step="0.1" id="Pf_R4" value="1" title="Right Pinky">
                     </div>
                 </div>
+            </div>
             </div>
         </div>
 
@@ -481,6 +522,13 @@
                     this.carpalx.restrictSameRow = elements.restrictSameRow.checked;
                 };
                 elements.corpusFile.onchange = e => this.loadFile(e);
+
+                document.querySelectorAll('.panel-header').forEach(header => {
+                    header.onclick = () => {
+                        header.classList.toggle('collapsed');
+                        header.nextElementSibling.classList.toggle('collapsed');
+                    };
+                });
 
                 const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3',
                                      'w0', 'wh', 'wr', 'wf', 'fh', 'fr', 'ff', 'path_offset',
