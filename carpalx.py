@@ -222,9 +222,23 @@ class Carpalx:
         self.triads = Corpus(self.config['corpus'], self.config).triads
 
     def optimize(self):
-        print("Optimizing keyboard...")
-        optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
-        self.keyboard = optimizer.run()
+        mode = self.config.get('annealing', {}).get('mode', 'full')
+        if mode == 'partial':
+            print("Running Partial Optimization (Iterative Key Swaps)...")
+            max_swaps = int(self.config.get('annealing', {}).get('maxswaps', 10))
+            optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
+            for i in range(1, max_swaps + 1):
+                best_swap, best_effort = optimizer.find_best_swap()
+                if best_swap:
+                    self.keyboard.swap_keys(best_swap[0], best_swap[1])
+                    print(f"Swap {i}: Swapped {self.keyboard.keys[best_swap[0][0]][best_swap[0][1]]['lc']} and {self.keyboard.keys[best_swap[1][0]][best_swap[1][1]]['lc']}, Effort: {best_effort:.4f}")
+                else:
+                    break
+        else:
+            print("Optimizing keyboard (Full Simulated Annealing)...")
+            optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
+            self.keyboard = optimizer.run()
+
         if 'keyboard_output' in self.config:
             out_file = self.config['keyboard_output']
             print(f"Saving optimized keyboard to {out_file}")
@@ -298,10 +312,14 @@ class Keyboard:
             print("Warning: No finger distance (base effort) defined.")
             return
         fd_rows = em['finger_distance']['row']
+
+        # Row penalties are 0-indexed in Perl config (0, 1, 2, 3)
+        # Base efforts are 1-indexed in Perl config (1, 2, 3, 4)
         for r in range(len(self.keys)):
-            r_key = str(r + 1)
-            if r_key in fd_rows:
-                efforts = [float(x) for x in fd_rows[r_key]['effort'].split()]
+            r_key_base = str(r + 1)
+            r_key_penalty = str(r)
+            if r_key_base in fd_rows:
+                efforts = [float(x) for x in fd_rows[r_key_base]['effort'].split()]
                 for c, key in enumerate(self.keys[r]):
                     if c < len(efforts):
                         base_effort = efforts[c]
@@ -313,7 +331,7 @@ class Keyboard:
                         base_penalty = float(penalties['default'])
                         h_str = 'right' if key['hand'] == 1 else 'left'
                         p_hand = float(penalties['hand'].get(h_str, 0))
-                        p_row = float(penalties['row'].get(r_key, 0))
+                        p_row = float(penalties['row'].get(r_key_penalty, 0))
                         f_str = 'left' if key['hand'] == 0 else 'right'
                         f_vals = [float(x) for x in penalties['finger'][f_str].split()]
                         f_idx = key['finger'] if key['hand'] == 0 else key['finger'] - 5
@@ -340,6 +358,7 @@ class Keyboard:
         path_cost_conf = self.config['effort_model'].get('path_cost', {})
 
         for triad, freq in triads.items():
+            if len(triad) != 3: continue
             c1, c2, c3 = triad
             if c1 not in self.map or c2 not in self.map or c3 not in self.map: continue
             k1_obj = self.map[c1]
@@ -351,8 +370,8 @@ class Keyboard:
             pe1 = k1_obj['effort']['penalty']
             pe2 = k2_obj['effort']['penalty']
             pe3 = k3_obj['effort']['penalty']
-            term_base = k1*be1 * (1 + k2*be2 * (1 + k3*be3))
-            term_penalty = k1*pe1 * (1 + k2*pe2 * (1 + k3*pe3))
+            term_base = k1 * be1 * (1 + k2 * be2 * (1 + k3 * be3))
+            term_penalty = k1 * pe1 * (1 + k2 * pe2 * (1 + k3 * pe3))
             triad_effort = kb * term_base + kp * term_penalty
             if ks != 0:
                 path_effort = self._calculate_path_effort(k1_obj, k2_obj, k3_obj, path_cost_conf)
@@ -385,27 +404,47 @@ class Keyboard:
             elif f2 == f3:
                 if k1['lc'] != k2['lc'] and k2['lc'] != k3['lc'] and k1['lc'] != k3['lc']: finger_flag = 7
                 else: finger_flag = 5
-        row_flag = 5
-        dr = sorted([abs(r1-r2), abs(r1-r3), abs(r2-r3)], reverse=True)
-        drmax = dr[0]
+        row_flag = 0
+        diffs = [
+            (abs(r1 - r2), r1 - r2),
+            (abs(r1 - r3), r1 - r3),
+            (abs(r2 - r3), r2 - r3)
+        ]
+        # Sort by absolute difference descending, then by original value ascending
+        diffs.sort(key=lambda x: (-x[0], x[1]))
+        drmax_abs, drmax = diffs[0]
+
         if r1 < r2:
             if r3 == r2: row_flag = 1
             elif r2 < r3: row_flag = 4
-            elif drmax == 1: row_flag = 3
-            else: row_flag = 7
+            elif drmax_abs == 1: row_flag = 3
+            else: row_flag = 7 if drmax < 0 else 5
         elif r1 > r2:
             if r3 == r2: row_flag = 2
             elif r2 > r3: row_flag = 6
-            elif drmax == 1: row_flag = 3
-            else: row_flag = 7
+            elif drmax_abs == 1: row_flag = 3
+            else: row_flag = 7 if drmax < 0 else 5
         else:
             if r2 > r3: row_flag = 2
             elif r2 < r3: row_flag = 1
             else: row_flag = 0
         path_key = f"{hand_flag}{row_flag}{finger_flag}"
-        cost_str = path_cost_conf.get(path_key, "0")
+        cost_str = path_cost_conf.get(path_key, 0)
         if '#' in str(cost_str): cost_str = str(cost_str).split('#')[0]
-        return float(cost_str)
+
+        path_offset = float(self.config['effort_model']['weight_param']['penalties'].get('path_offset', 0))
+        fh = float(self.config['effort_model']['path_cost'].get('fh', 1))
+        fr = float(self.config['effort_model']['path_cost'].get('fr', 0.3))
+        ff = float(self.config['effort_model']['path_cost'].get('ff', 0.3))
+
+        # If path_key exists in config, use it directly as in the original Perl implementation.
+        # Otherwise, calculate it using fh, fr, ff weights.
+        if path_key in path_cost_conf:
+            # Special case for Perl's 000 triad (not defined in path cost config)
+            # which returns path_offset (since 0 is the default in config.get)
+            return path_offset + float(cost_str)
+        else:
+            return path_offset + (fh * hand_flag + fr * row_flag + ff * finger_flag)
 
     def save(self, filepath):
         with open(filepath, 'w') as f:
@@ -469,8 +508,11 @@ class Corpus:
                 elif force_case == 'uc': line = line.upper()
                 if reject_char_rx: line = re.sub(reject_char_rx, '', line)
                 line = re.sub(r'\s', '', line)
+                accept_repeats = mode.get('accept_repeats', 'yes') in ['yes', '1', 1, True]
                 for i in range(len(line) - 2):
                     triad = line[i:i+3]
+                    if not accept_repeats and triad[0] == triad[1] == triad[2]:
+                        continue
                     self.triads[triad] += 1
         min_freq = int(self.config.get('triads_min_freq', 0))
         if min_freq > 0:
@@ -486,7 +528,29 @@ class SimulatedAnnealing:
         self.t0 = float(self.params.get('t0', 10))
         self.k = float(self.params.get('k', 10))
         self.p0 = float(self.params.get('p0', 1))
+        self.restrict_same_row = self.params.get('restrict_same_row') in ['yes', '1', 1, True]
         self.relocatable = self._get_relocatable_keys()
+
+    def find_best_swap(self):
+        best_swap = None
+        current_effort = self.keyboard.calculate_effort(self.triads)
+        best_effort = current_effort
+
+        for i in range(len(self.relocatable)):
+            for j in range(i + 1, len(self.relocatable)):
+                k1 = self.relocatable[i]
+                k2 = self.relocatable[j]
+
+                if self.restrict_same_row and k1[0] != k2[0]:
+                    continue
+
+                self.keyboard.swap_keys(k1, k2)
+                new_effort = self.keyboard.calculate_effort(self.triads)
+                if new_effort < best_effort:
+                    best_effort = new_effort
+                    best_swap = (k1, k2)
+                self.keyboard.swap_keys(k1, k2) # swap back
+        return best_swap, best_effort
 
     def _get_relocatable_keys(self):
         reloc = []
@@ -506,8 +570,14 @@ class SimulatedAnnealing:
         for i in range(1, self.iterations + 1):
             if not self.relocatable: break
             k1 = random.choice(self.relocatable)
-            k2 = random.choice(self.relocatable)
-            while k1 == k2: k2 = random.choice(self.relocatable)
+            if self.restrict_same_row:
+                same_row = [rk for rk in self.relocatable if rk[0] == k1[0] and rk != k1]
+                if not same_row: continue
+                k2 = random.choice(same_row)
+            else:
+                k2 = random.choice(self.relocatable)
+                while k1 == k2: k2 = random.choice(self.relocatable)
+
             self.keyboard.swap_keys(k1, k2)
             new_effort = self.keyboard.calculate_effort(self.triads)
             deffort = new_effort - current_effort
@@ -532,6 +602,8 @@ class SimulatedAnnealing:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Carpalx Keyboard Optimizer (Python Port)')
     parser.add_argument('-conf', dest='configfile', help='Configuration file', required=False)
+    parser.add_argument('-corpus', dest='corpus', help='Training corpus', required=False)
+    parser.add_argument('-action', dest='action', help='Actions to perform', required=False)
     args = parser.parse_args()
     conf_file = args.configfile if args.configfile else 'etc/carpalx.conf'
     if not os.path.exists(conf_file):
@@ -541,4 +613,6 @@ if __name__ == '__main__':
             print("Configuration file not found.")
             sys.exit(1)
     app = Carpalx(conf_file)
+    if args.corpus: app.config['corpus'] = args.corpus
+    if args.action: app.config['action'] = args.action
     app.run()

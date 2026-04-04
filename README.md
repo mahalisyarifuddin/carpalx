@@ -1,43 +1,45 @@
 # Carpalx Keyboard Optimizer
 
-**Carpalx** is a keyboard layout optimizer that uses simulated annealing to find layouts that minimize typing effort. This repository contains a Python port of the original Perl implementation, provided as a Jupyter Notebook for easy experimentation in Google Colab.
+**Carpalx** is a keyboard layout optimizer that uses simulated annealing to minimize typing effort. This repository offers three implementations: a standalone web application, a Google Colab notebook, and a Python script.
 
-## Usage
+## Implementations
 
-### Jupyter Notebook (Google Colab)
+### 1. Web Application (`carpalx.html`)
 
-The primary artifact is `carpalx.ipynb`. This notebook is self-contained and includes:
+A standalone HTML-JS tool for instant optimization in your browser.
 
-*   **Configuration**: All effort models, weights, and parameters are embedded.
-*   **Logic**: The core optimization algorithms (Simulated Annealing) ported to Python.
-*   **Visualization**: Tools to visualize keyboard layouts.
+*   **Keyboard Visualization**: Real-time layout rendering.
+*   **File-Based Analysis**: Upload `.txt` corpora for precise effort calculation and optimization training.
+*   **Optimization**: Run simulated annealing directly in the browser with configurable penalties and row constraints.
 
-**To use:**
-1.  Open `carpalx.ipynb` in Google Colab or a local Jupyter environment.
-2.  Run the cells.
-3.  Upload your own corpus text file (e.g., `corpus.txt`) when prompted or ensure it exists in the working directory.
-4.  The notebook will output the optimized layout and effort statistics.
+**To use:** Open `carpalx.html` in any modern web browser. Upload a text file to begin analysis or optimization.
 
-### Python Script
+### 2. Google Colab Notebook (`carpalx.ipynb`)
 
-A standalone Python script `carpalx.py` is also provided.
+A self-contained Python-based notebook for advanced experimentation.
+
+*   **Self-Contained**: All configuration models and logic are embedded.
+*   **Custom Corpora**: Upload and analyze your own text files.
+*   **Rich Visualization**: Uses Matplotlib for layout plots.
+
+**To use:** Open `carpalx.ipynb` in Google Colab or a local Jupyter environment.
+
+### 3. Python Script (`carpalx.py`)
+
+The core Python port of the original Carpalx logic.
 
 ```bash
 python3 carpalx.py -conf etc/carpalx.conf
 ```
 
-Note: The script relies on configuration files in `etc/`.
-
 ## Legacy Perl Implementation
 
-The original Perl implementation has been moved to the `legacy/` directory.
-
-*   `legacy/bin/`: Original Perl scripts (`carpalx`, `generatetriads`, etc.)
+The original Perl implementation is available in the `legacy/` directory for reference.
 
 ## Original Documentation
 
-See http://mkweb.bcgsc.ca/carpalx for the original project documentation and theory behind the effort models.
+See [mkweb.bcgsc.ca/carpalx](http://mkweb.bcgsc.ca/carpalx) for the original project documentation and theory behind the effort models.
 
 ## License
 
-See original license information in source files.
+GNU General Public License. See source files for details.
