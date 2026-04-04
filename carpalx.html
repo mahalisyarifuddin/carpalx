@@ -198,6 +198,7 @@
             user-select: none;
             overflow-x: auto;
             padding-bottom: 0.5rem;
+            pointer-events: all;
         }
         .kb-row {
             display: flex;
@@ -221,7 +222,8 @@
         }
         .key .uc { font-weight: bold; }
         .key .lc { font-size: 0.75rem; color: var(--text); opacity: 0.8; }
-        .key.relocatable { border-color: var(--primary); background: var(--surface); }
+        .key.relocatable { border-color: var(--primary); background: var(--surface); cursor: pointer; }
+        .key:not(.relocatable) { border-style: dashed; opacity: 0.7; cursor: pointer; }
         .key.highlight { background: var(--highlight-bg); border-color: var(--primary); }
 
         .stats {
@@ -269,6 +271,9 @@
         .panel-content.collapsed {
             display: none;
         }
+        .panel-header.collapsed + .panel-content {
+            display: none;
+        }
         .toggle-icon::after {
             content: '▼';
             font-size: 0.8rem;
@@ -297,11 +302,11 @@
 		<p id="subtitle" class="info"></p>
 
         <div class="panel" id="optimizationPanel">
-            <div class="panel-header">
+            <div class="panel-header collapsed">
                 <h3 id="optimizationParamsTitle">Optimization Settings</h3>
                 <span class="toggle-icon"></span>
             </div>
-            <div class="panel-content">
+            <div class="panel-content collapsed">
             <div class="row">
                 <div class="group">
                     <label id="baseLayoutLabel" for="baseLayoutSelect">Base Layout</label>
@@ -343,11 +348,11 @@
         </div>
 
         <div class="panel" id="penaltyPanel">
-            <div class="panel-header">
+            <div class="panel-header collapsed">
                 <h3 id="penaltyParamsTitle">Penalty Parameters</h3>
                 <span class="toggle-icon"></span>
             </div>
-            <div class="panel-content">
+            <div class="panel-content collapsed">
             <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <button id="resetParamsBtn" class="secondary" style="width: auto; padding: 0.25rem 0.75rem; font-size: 0.8rem;"></button>
             </div>
@@ -409,10 +414,11 @@
 
         <div class="row" style="margin-top: 2rem;">
             <div class="group">
-                <label id="corpusLabel" for="corpusFile"></label>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <input type="file" id="corpusFile" accept=".txt" style="width: auto; font-size: 0.8rem;">
-                    <span id="fileNameDisplay" class="info" style="font-weight: 500;">No file loaded</span>
+                <div id="uploadArea" style="border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 8px; background: var(--muted); cursor: pointer; transition: border-color 0.2s;">
+                    <label id="corpusLabel" for="corpusFile" style="cursor: pointer; margin-bottom: 0.5rem;"></label>
+                    <input type="file" id="corpusFile" accept=".txt" style="display: none;">
+                    <p id="fileNameDisplay" class="info" style="font-weight: 600; margin-bottom: 0; color: var(--primary);">No file loaded</p>
+                    <p class="info" style="margin-top: 0.5rem; font-size: 0.8rem;">Click or drag and drop a .txt file here</p>
                 </div>
             </div>
         </div>
@@ -935,7 +941,7 @@ const textTranslations = {
 				darkTheme: 'Dark',
                 corpusLabel: 'Training Corpus (.txt)',
                 optimizeBtn: 'Start Optimization',
-                resetBtn: 'Reset to QWERTY',
+                resetBtn: 'Reset Layout',
                 effortLabel: 'Typing Effort',
                 iterationsLabel: 'Iterations / Swaps',
                 tempLabel: 'Temperature',
@@ -959,7 +965,7 @@ const textTranslations = {
 				darkTheme: 'Gelap',
                 corpusLabel: 'Korpus Pelatihan (.txt)',
                 optimizeBtn: 'Mulai Optimasi',
-                resetBtn: 'Reset ke QWERTY',
+                resetBtn: 'Reset Tata Letak',
                 effortLabel: 'Upaya Pengetikan',
                 iterationsLabel: 'Iterasi / Pertukaran',
                 tempLabel: 'Suhu',
@@ -1001,6 +1007,7 @@ const textTranslations = {
                     restrictSameRow: elements.restrictSameRow.checked,
                     maxIterations: elements.maxIterations.value,
                     maxSwaps: elements.maxSwaps.value,
+                    mask: this.carpalx.mask,
                     penalties: {}
                 };
                 const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3',
@@ -1027,6 +1034,7 @@ const textTranslations = {
                         if (state.restrictSameRow !== undefined) elements.restrictSameRow.checked = state.restrictSameRow;
                         if (state.maxIterations) elements.maxIterations.value = state.maxIterations;
                         if (state.maxSwaps) elements.maxSwaps.value = state.maxSwaps;
+                        if (state.mask) this.carpalx.mask = state.mask;
 
                         if (state.penalties) {
                             Object.keys(state.penalties).forEach(id => {
@@ -1070,6 +1078,17 @@ const textTranslations = {
                 elements.maxIterations.oninput = () => this.saveState();
                 elements.maxSwaps.oninput = () => this.saveState();
                 elements.corpusFile.onchange = e => this.loadFile(e);
+                elements.uploadArea.onclick = () => elements.corpusFile.click();
+                elements.uploadArea.ondragover = e => { e.preventDefault(); elements.uploadArea.style.borderColor = 'var(--primary)'; };
+                elements.uploadArea.ondragleave = () => { elements.uploadArea.style.borderColor = 'var(--border)'; };
+                elements.uploadArea.ondrop = e => {
+                    e.preventDefault();
+                    elements.uploadArea.style.borderColor = 'var(--border)';
+                    if (e.dataTransfer.files.length) {
+                        elements.corpusFile.files = e.dataTransfer.files;
+                        this.loadFile({ target: elements.corpusFile });
+                    }
+                };
 
                 document.querySelectorAll('.panel-header').forEach(header => {
                     header.onclick = () => {
@@ -1197,8 +1216,16 @@ const textTranslations = {
 
                     row.forEach((key, c) => {
                         const keyEl = document.createElement('div');
-                        keyEl.className = 'key' + (this.carpalx.mask[r][c] ? ' relocatable' : '');
+                        const isRelocatable = this.carpalx.mask[r][c];
+                        keyEl.className = 'key' + (isRelocatable ? ' relocatable' : '');
                         keyEl.innerHTML = `<span class="uc">${key.uc}</span><span class="lc">${key.lc}</span>`;
+                        keyEl.onclick = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.carpalx.mask[r][c] = this.carpalx.mask[r][c] ? 0 : 1;
+                            this.renderKeyboard();
+                            this.saveState();
+                        };
                         rowEl.appendChild(keyEl);
                     });
                     elements.keyboard.appendChild(rowEl);
@@ -1243,6 +1270,8 @@ const textTranslations = {
             async runPartialOptimization(triads) {
                 const maxSwaps = parseInt(elements.maxSwaps.value) || 10;
                 let currentEffort = this.carpalx.calculateEffort(triads);
+                this.bestEffort = currentEffort;
+                let bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
                 elements.temperature.textContent = 'N/A';
 
                 for (let i = 1; i <= maxSwaps && this.optimizing; i++) {
@@ -1250,6 +1279,10 @@ const textTranslations = {
                     if (result.bestSwap) {
                         this.carpalx.swapKeys(result.bestSwap[0], result.bestSwap[1]);
                         currentEffort = result.bestEffort;
+                        if (currentEffort < this.bestEffort) {
+                            this.bestEffort = currentEffort;
+                            bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
+                        }
                         elements.iterations.textContent = i;
                         elements.totalEffort.textContent = currentEffort.toFixed(6);
                         this.renderKeyboard();
@@ -1258,6 +1291,20 @@ const textTranslations = {
                         break;
                     }
                 }
+
+                // Restore best layout (though for greedy swap it usually is the last one)
+                this.carpalx.keys.forEach((row, r) => {
+                    row.forEach((key, c) => {
+                        key.lc = bestLayout[r][c].lc;
+                        key.uc = bestLayout[r][c].uc;
+                        this.carpalx.map[key.lc] = key;
+                        this.carpalx.map[key.uc] = key;
+                        this.carpalx.calculateKeyEffort(key);
+                    });
+                });
+                this.renderKeyboard();
+                this.updateEffort();
+                this.saveState();
             }
 
             async runFullOptimization(triads) {
@@ -1266,23 +1313,23 @@ const textTranslations = {
                 const k = 10;
                 const p0 = 1;
                 const relocatable = this.carpalx.getRelocatableKeys();
+                if (relocatable.length < 2) return;
 
                 let currentEffort = this.carpalx.calculateEffort(triads);
                 this.bestEffort = currentEffort;
+                let bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
 
                 for (let i = 1; i <= maxIterations && this.optimizing; i++) {
                     const k1_idx = Math.floor(Math.random() * relocatable.length);
-                    let k2_idx = Math.floor(Math.random() * relocatable.length);
-
                     const k1 = relocatable[k1_idx];
-                    let k2 = relocatable[k2_idx];
+                    let k2;
 
                     if (this.carpalx.restrictSameRow) {
                         const sameRowKeys = relocatable.filter(rk => rk[0] === k1[0] && (rk[0] !== k1[0] || rk[1] !== k1[1]));
                         if (sameRowKeys.length === 0) continue;
                         k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
-                        // Need to update k2_idx if we ever use it again in this loop, but currently we just use k2
                     } else {
+                        let k2_idx = Math.floor(Math.random() * relocatable.length);
                         while (k1_idx === k2_idx) k2_idx = Math.floor(Math.random() * relocatable.length);
                         k2 = relocatable[k2_idx];
                     }
@@ -1304,6 +1351,7 @@ const textTranslations = {
                         currentEffort = newEffort;
                         if (currentEffort < this.bestEffort) {
                             this.bestEffort = currentEffort;
+                            bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
                             this.renderKeyboard();
                         }
                     } else {
@@ -1317,6 +1365,20 @@ const textTranslations = {
                         await new Promise(r => setTimeout(r, 0));
                     }
                 }
+
+                // Restore best layout
+                this.carpalx.keys.forEach((row, r) => {
+                    row.forEach((key, c) => {
+                        key.lc = bestLayout[r][c].lc;
+                        key.uc = bestLayout[r][c].uc;
+                        this.carpalx.map[key.lc] = key;
+                        this.carpalx.map[key.uc] = key;
+                        this.carpalx.calculateKeyEffort(key);
+                    });
+                });
+                this.renderKeyboard();
+                this.updateEffort();
+                this.saveState();
             }
 
             resetParams() {
@@ -1356,12 +1418,8 @@ const textTranslations = {
 
             reset() {
                 this.optimizing = false;
-                this.carpalx = new Carpalx();
-                this.corpusText = '';
-                this.currentFileName = '';
-                elements.corpusFile.value = '';
-                this.updateFileNameDisplay();
-                this.resetParams();
+                const layout = elements.baseLayoutSelect.value;
+                this.carpalx.initKeyboard(layout);
                 this.renderKeyboard();
                 this.updateEffort();
                 elements.iterations.textContent = '0';
