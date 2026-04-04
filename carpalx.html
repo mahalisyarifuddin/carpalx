@@ -268,12 +268,28 @@
             <h3 id="optimizationParamsTitle">Optimization Settings</h3>
             <div class="row">
                 <div class="group">
+                    <label id="baseLayoutLabel" for="baseLayoutSelect">Base Layout</label>
+                    <select id="baseLayoutSelect">
+                        <option value="qwerty">QWERTY</option>
+                        <option value="qwertz">QWERTZ</option>
+                        <option value="azerty">AZERTY</option>
+                    </select>
+                </div>
+                <div class="group">
                     <label id="optModeLabel" for="optModeSelect">Mode</label>
                     <select id="optModeSelect">
                         <option value="full">Full (Simulated Annealing)</option>
                         <option value="partial">Partial (Iterative Key Swaps)</option>
                     </select>
                 </div>
+                <div class="group" style="display: flex; align-items: flex-end; padding-bottom: 0.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="restrictSameRow" style="width: auto;">
+                        <span id="restrictSameRowLabel">Restrict to Same Row</span>
+                    </label>
+                </div>
+            </div>
+            <div class="row">
                 <div id="fullParams" class="group row" style="gap: 0.5rem; margin-bottom: 0;">
                     <div class="group">
                         <label id="iterationsLimitLabel">Iterations</label>
@@ -408,7 +424,9 @@
                 maxSwapsLabel: 'Max Swaps',
                 iterationsLimitLabel: 'Iterations',
                 optModeLabel: 'Mode',
-                resetParamsBtn: 'Reset Params'
+                resetParamsBtn: 'Reset Params',
+                baseLayoutLabel: 'Base Layout',
+                restrictSameRowLabel: 'Restrict to Same Row'
 			},
 			id: {
 				title: 'Optimasi Keyboard Carpalx',
@@ -429,7 +447,9 @@
                 maxSwapsLabel: 'Maks Pertukaran',
                 iterationsLimitLabel: 'Iterasi',
                 optModeLabel: 'Mode',
-                resetParamsBtn: 'Reset Parameter'
+                resetParamsBtn: 'Reset Parameter',
+                baseLayoutLabel: 'Tata Letak Dasar',
+                restrictSameRowLabel: 'Batasi ke Baris yang Sama'
 			}
 		};
 		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
@@ -456,6 +476,10 @@
                 elements.resetParamsBtn.onclick = () => this.resetParams();
                 elements.corpusInput.oninput = () => this.updateEffort();
                 elements.optModeSelect.onchange = () => this.updateModeUI();
+                elements.baseLayoutSelect.onchange = () => this.changeBaseLayout();
+                elements.restrictSameRow.onchange = () => {
+                    this.carpalx.restrictSameRow = elements.restrictSameRow.checked;
+                };
                 elements.corpusFile.onchange = e => this.loadFile(e);
 
                 const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3',
@@ -522,6 +546,14 @@
                     elements.fullParams.classList.add('hidden');
                     elements.partialParams.classList.remove('hidden');
                 }
+            }
+
+            changeBaseLayout() {
+                const layout = elements.baseLayoutSelect.value;
+                this.carpalx.initKeyboard(layout);
+                this.syncParameters(); // Re-apply current params to new layout
+                this.renderKeyboard();
+                this.updateEffort();
             }
 
             async loadFile(event) {
@@ -644,10 +676,18 @@
                 for (let i = 1; i <= maxIterations && this.optimizing; i++) {
                     const k1_idx = Math.floor(Math.random() * relocatable.length);
                     let k2_idx = Math.floor(Math.random() * relocatable.length);
-                    while (k1_idx === k2_idx) k2_idx = Math.floor(Math.random() * relocatable.length);
 
                     const k1 = relocatable[k1_idx];
-                    const k2 = relocatable[k2_idx];
+                    let k2 = relocatable[k2_idx];
+
+                    if (this.carpalx.restrictSameRow) {
+                        const sameRowKeys = relocatable.filter(rk => rk.r === k1.r && (rk.r !== k1.r || rk.c !== k1.c));
+                        if (sameRowKeys.length === 0) continue;
+                        k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
+                    } else {
+                        while (k1_idx === k2_idx) k2_idx = Math.floor(Math.random() * relocatable.length);
+                        k2 = relocatable[k2_idx];
+                    }
 
                     this.carpalx.swapKeys(k1, k2);
                     const newEffort = this.carpalx.calculateEffort(triads);
@@ -709,9 +749,9 @@
                 elements.Pf_L4.value = 0;
                 elements.Pf_R0.value = 0;
                 elements.Pf_R1.value = 0;
-                elements.Pf_R2.value = 0.5;
-                elements.Pf_R3.value = 1;
-                elements.Pf_R4.value = 0;
+                elements.Pf_R2.value = 0;
+                elements.Pf_R3.value = 0.5;
+                elements.Pf_R4.value = 1;
                 this.syncParameters();
             }
 

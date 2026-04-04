@@ -154,12 +154,28 @@ class Carpalx {
             [2, 2, 2, 2, 3.5, 2, 2, 2, 2, 2]
         ];
 
-        this.initialLayout = [
-            ["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"],
-            ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"],
-            ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""],
-            ["z", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]
-        ];
+        this.layouts = {
+            qwerty: [
+                ["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"],
+                ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"],
+                ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""],
+                ["z", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]
+            ],
+            qwertz: [
+                ["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"],
+                ["q", "w", "e", "r", "t", "z", "u", "i", "o", "p", "[{", "]}", "\\|"],
+                ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""],
+                ["y", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]
+            ],
+            azerty: [
+                ["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"],
+                ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"],
+                ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m", "'\""],
+                ["w", "x", "c", "v", "b", "n", ",<", ".>", "/?", ";:"]
+            ]
+        };
+        this.initialLayout = this.layouts.qwerty;
+        this.restrictSameRow = false;
 
         this.fingers = [
             [0, 1, 1, 2, 3, 3, 3, 6, 7, 7, 8, 9, 9],
@@ -178,7 +194,15 @@ class Carpalx {
         this.initKeyboard();
     }
 
-    initKeyboard() {
+    initKeyboard(layoutName = 'qwerty') {
+        this.initialLayout = this.layouts[layoutName] || this.layouts.qwerty;
+
+        // Update mask to match letters in the layout
+        this.mask = this.initialLayout.map(row => row.map(keyStr => {
+            let lc = keyStr.startsWith('\\') ? keyStr[1] : keyStr[0];
+            return /[a-zA-Z]/.test(lc) ? 1 : 0;
+        }));
+
         this.keys = [];
         this.map = {};
         for (let r = 0; r < this.initialLayout.length; r++) {
@@ -400,6 +424,8 @@ class Carpalx {
                 const k1 = relocatable[i];
                 const k2 = relocatable[j];
 
+                if (this.restrictSameRow && k1[0] !== k2[0]) continue;
+
                 this.swapKeys(k1, k2);
                 const newEffort = this.calculateEffort(triads);
                 if (newEffort < bestEffort) {
@@ -414,6 +440,7 @@ class Carpalx {
 
     copy() {
         let newCarpalx = new Carpalx();
+        newCarpalx.restrictSameRow = this.restrictSameRow;
         newCarpalx.updateParameters({
             kb: this.kb, kp: this.kp, ks: this.ks,
             k1: this.k1, k2: this.k2, k3: this.k3,

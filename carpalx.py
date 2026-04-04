@@ -514,6 +514,7 @@ class SimulatedAnnealing:
         self.t0 = float(self.params.get('t0', 10))
         self.k = float(self.params.get('k', 10))
         self.p0 = float(self.params.get('p0', 1))
+        self.restrict_same_row = self.params.get('restrict_same_row') in ['yes', '1', 1, True]
         self.relocatable = self._get_relocatable_keys()
 
     def find_best_swap(self):
@@ -525,6 +526,9 @@ class SimulatedAnnealing:
             for j in range(i + 1, len(self.relocatable)):
                 k1 = self.relocatable[i]
                 k2 = self.relocatable[j]
+
+                if self.restrict_same_row and k1[0] != k2[0]:
+                    continue
 
                 self.keyboard.swap_keys(k1, k2)
                 new_effort = self.keyboard.calculate_effort(self.triads)
@@ -552,8 +556,14 @@ class SimulatedAnnealing:
         for i in range(1, self.iterations + 1):
             if not self.relocatable: break
             k1 = random.choice(self.relocatable)
-            k2 = random.choice(self.relocatable)
-            while k1 == k2: k2 = random.choice(self.relocatable)
+            if self.restrict_same_row:
+                same_row = [rk for rk in self.relocatable if rk[0] == k1[0] and rk != k1]
+                if not same_row: continue
+                k2 = random.choice(same_row)
+            else:
+                k2 = random.choice(self.relocatable)
+                while k1 == k2: k2 = random.choice(self.relocatable)
+
             self.keyboard.swap_keys(k1, k2)
             new_effort = self.keyboard.calculate_effort(self.triads)
             deffort = new_effort - current_effort
