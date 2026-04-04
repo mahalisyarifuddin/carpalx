@@ -74,7 +74,7 @@
 			background: var(--surface);
 			border: 1px solid var(--border);
 			border-radius: 8px;
-			max-width: 960px;
+			max-width: 1000px;
 			padding: 2rem;
 			width: 100%;
 			position: relative;
@@ -89,6 +89,7 @@
 		label {
 			display: block;
 			font-weight: 700;
+            font-size: 0.9rem;
 		}
 		input, select, button, textarea {
 			background: var(--surface);
@@ -236,6 +237,22 @@
         }
         .stat-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
         .stat-val { font-size: 1.25rem; font-weight: bold; color: var(--primary); font-family: monospace; }
+
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            background: var(--muted);
+        }
+        .panel h3 { margin-top: 0; font-size: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .grid-params {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+        .grid-params .group label { font-size: 0.75rem; }
+        .grid-params input { padding: 0.25rem; font-size: 0.85rem; }
 	</style>
 </head>
 <body>
@@ -247,10 +264,98 @@
 		<h1 id="title"></h1>
 		<p id="subtitle" class="info"></p>
 
+        <div class="panel">
+            <h3 id="optimizationParamsTitle">Optimization Settings</h3>
+            <div class="row">
+                <div class="group">
+                    <label id="optModeLabel" for="optModeSelect">Mode</label>
+                    <select id="optModeSelect">
+                        <option value="full">Full (Simulated Annealing)</option>
+                        <option value="partial">Partial (Iterative Key Swaps)</option>
+                    </select>
+                </div>
+                <div id="fullParams" class="group row" style="gap: 0.5rem; margin-bottom: 0;">
+                    <div class="group">
+                        <label id="iterationsLimitLabel">Iterations</label>
+                        <input type="number" id="maxIterations" value="5000">
+                    </div>
+                </div>
+                <div id="partialParams" class="group row hidden" style="gap: 0.5rem; margin-bottom: 0;">
+                    <div class="group">
+                        <label id="maxSwapsLabel">Max Swaps</label>
+                        <input type="number" id="maxSwaps" value="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 id="penaltyParamsTitle" style="margin: 0; border: 0;">Penalty Parameters</h3>
+                <button id="resetParamsBtn" class="secondary" style="width: auto; padding: 0.25rem 0.75rem; font-size: 0.8rem;"></button>
+            </div>
+            <div class="grid-params">
+                <div class="group"><label title="Component weight: base effort">kb</label><input type="number" step="0.001" id="kb" value="0.3555"></div>
+                <div class="group"><label title="Component weight: penalty effort">kp</label><input type="number" step="0.001" id="kp" value="0.6423"></div>
+                <div class="group"><label title="Component weight: path effort">ks</label><input type="number" step="0.001" id="ks" value="0.4268"></div>
+                <div class="group"><label title="Interaction weight: 1st key">k1</label><input type="number" step="0.001" id="k1" value="1"></div>
+                <div class="group"><label title="Interaction weight: 2nd key">k2</label><input type="number" step="0.001" id="k2" value="0.367"></div>
+                <div class="group"><label title="Interaction weight: 3rd key">k3</label><input type="number" step="0.001" id="k3" value="0.235"></div>
+            </div>
+            <div class="grid-params" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <div class="group"><label title="Default penalty">w0</label><input type="number" step="0.1" id="w0" value="0"></div>
+                <div class="group"><label title="Hand weight">wh</label><input type="number" step="0.1" id="wh" value="1"></div>
+                <div class="group"><label title="Row weight">wr</label><input type="number" step="0.1" id="wr" value="1.3088"></div>
+                <div class="group"><label title="Finger weight">wf</label><input type="number" step="0.1" id="wf" value="2.5948"></div>
+                <div class="group"><label title="Path weight: hand">fh</label><input type="number" step="0.1" id="fh" value="1"></div>
+                <div class="group"><label title="Path weight: row">fr</label><input type="number" step="0.1" id="fr" value="0.3"></div>
+                <div class="group"><label title="Path weight: finger">ff</label><input type="number" step="0.1" id="ff" value="0.3"></div>
+                <div class="group"><label title="Path offset">poffset</label><input type="number" step="0.1" id="path_offset" value="0"></div>
+            </div>
+            <div class="row" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+                <div class="group" style="flex: 1;">
+                    <label>Row Penalties (0-3)</label>
+                    <div class="grid-params" style="grid-template-columns: repeat(4, 1fr);">
+                        <input type="number" step="0.1" id="Pr_0" value="1.5">
+                        <input type="number" step="0.1" id="Pr_1" value="0.5">
+                        <input type="number" step="0.1" id="Pr_2" value="0">
+                        <input type="number" step="0.1" id="Pr_3" value="1">
+                    </div>
+                </div>
+                <div class="group" style="flex: 0.5;">
+                    <label>Hand Penalties (L, R)</label>
+                    <div class="grid-params" style="grid-template-columns: repeat(2, 1fr);">
+                        <input type="number" step="0.1" id="Ph_L" value="0">
+                        <input type="number" step="0.1" id="Ph_R" value="0">
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 0.5rem;">
+                <div class="group">
+                    <label>Finger Penalties (L-Pinky to R-Pinky)</label>
+                    <div class="grid-params" style="grid-template-columns: repeat(10, 1fr);">
+                        <input type="number" step="0.1" id="Pf_L0" value="1" title="Left Pinky">
+                        <input type="number" step="0.1" id="Pf_L1" value="0.5" title="Left Ring">
+                        <input type="number" step="0.1" id="Pf_L2" value="0" title="Left Middle">
+                        <input type="number" step="0.1" id="Pf_L3" value="0" title="Left Index">
+                        <input type="number" step="0.1" id="Pf_L4" value="0" title="Left Thumb">
+                        <input type="number" step="0.1" id="Pf_R0" value="0" title="Right Thumb">
+                        <input type="number" step="0.1" id="Pf_R1" value="0" title="Right Index">
+                        <input type="number" step="0.1" id="Pf_R2" value="0" title="Right Middle">
+                        <input type="number" step="0.1" id="Pf_R3" value="0.5" title="Right Ring">
+                        <input type="number" step="0.1" id="Pf_R4" value="1" title="Right Pinky">
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row" style="margin-top: 1.5rem;">
             <div class="group">
                 <label id="corpusLabel" for="corpusInput"></label>
                 <textarea id="corpusInput" placeholder="Enter text to analyze and optimize for..."></textarea>
+                <div style="margin-top: 0.5rem;">
+                    <input type="file" id="corpusFile" accept=".txt" style="width: auto; font-size: 0.8rem;">
+                </div>
             </div>
         </div>
 
@@ -294,10 +399,16 @@
                 optimizeBtn: 'Start Optimization',
                 resetBtn: 'Reset to QWERTY',
                 effortLabel: 'Typing Effort',
-                iterationsLabel: 'Iterations',
+                iterationsLabel: 'Iterations / Swaps',
                 tempLabel: 'Temperature',
                 optimizing: 'Stop Optimization',
-                placeholder: 'Enter text to analyze and optimize for...'
+                placeholder: 'Enter text to analyze and optimize for...',
+                optimizationParamsTitle: 'Optimization Settings',
+                penaltyParamsTitle: 'Penalty Parameters',
+                maxSwapsLabel: 'Max Swaps',
+                iterationsLimitLabel: 'Iterations',
+                optModeLabel: 'Mode',
+                resetParamsBtn: 'Reset Params'
 			},
 			id: {
 				title: 'Optimasi Keyboard Carpalx',
@@ -309,10 +420,16 @@
                 optimizeBtn: 'Mulai Optimasi',
                 resetBtn: 'Reset ke QWERTY',
                 effortLabel: 'Upaya Pengetikan',
-                iterationsLabel: 'Iterasi',
+                iterationsLabel: 'Iterasi / Pertukaran',
                 tempLabel: 'Suhu',
                 optimizing: 'Hentikan Optimasi',
-                placeholder: 'Masukkan teks untuk dianalisis dan dioptimalkan...'
+                placeholder: 'Masukkan teks untuk dianalisis dan dioptimalkan...',
+                optimizationParamsTitle: 'Pengaturan Optimasi',
+                penaltyParamsTitle: 'Parameter Penalti',
+                maxSwapsLabel: 'Maks Pertukaran',
+                iterationsLimitLabel: 'Iterasi',
+                optModeLabel: 'Mode',
+                resetParamsBtn: 'Reset Parameter'
 			}
 		};
 		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
@@ -336,8 +453,84 @@
 				elements.theme.onchange = event => this.theme(event.target.value);
                 elements.optimizeBtn.onclick = () => this.toggleOptimize();
                 elements.resetBtn.onclick = () => this.reset();
+                elements.resetParamsBtn.onclick = () => this.resetParams();
                 elements.corpusInput.oninput = () => this.updateEffort();
+                elements.optModeSelect.onchange = () => this.updateModeUI();
+                elements.corpusFile.onchange = e => this.loadFile(e);
+
+                const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3',
+                                     'w0', 'wh', 'wr', 'wf', 'fh', 'fr', 'ff', 'path_offset',
+                                     'Pr_0', 'Pr_1', 'Pr_2', 'Pr_3', 'Ph_L', 'Ph_R',
+                                     'Pf_L0', 'Pf_L1', 'Pf_L2', 'Pf_L3', 'Pf_L4', 'Pf_R0', 'Pf_R1', 'Pf_R2', 'Pf_R3', 'Pf_R4'];
+                penaltyInputs.forEach(id => {
+                    elements[id].oninput = () => this.syncParameters();
+                });
 			}
+
+            syncParameters() {
+                const params = {
+                    kb: parseFloat(elements.kb.value),
+                    kp: parseFloat(elements.kp.value),
+                    ks: parseFloat(elements.ks.value),
+                    k1: parseFloat(elements.k1.value),
+                    k2: parseFloat(elements.k2.value),
+                    k3: parseFloat(elements.k3.value),
+                    w0: parseFloat(elements.w0.value),
+                    wh: parseFloat(elements.wh.value),
+                    wr: parseFloat(elements.wr.value),
+                    wf: parseFloat(elements.wf.value),
+                    fh: parseFloat(elements.fh.value),
+                    fr: parseFloat(elements.fr.value),
+                    ff: parseFloat(elements.ff.value),
+                    path_offset: parseFloat(elements.path_offset.value),
+                    Pr: [
+                        parseFloat(elements.Pr_0.value),
+                        parseFloat(elements.Pr_1.value),
+                        parseFloat(elements.Pr_2.value),
+                        parseFloat(elements.Pr_3.value)
+                    ],
+                    Ph: {
+                        left: parseFloat(elements.Ph_L.value),
+                        right: parseFloat(elements.Ph_R.value)
+                    },
+                    Pf: {
+                        left: [
+                            parseFloat(elements.Pf_L0.value),
+                            parseFloat(elements.Pf_L1.value),
+                            parseFloat(elements.Pf_L2.value),
+                            parseFloat(elements.Pf_L3.value),
+                            parseFloat(elements.Pf_L4.value)
+                        ],
+                        right: [
+                            parseFloat(elements.Pf_R0.value),
+                            parseFloat(elements.Pf_R1.value),
+                            parseFloat(elements.Pf_R2.value),
+                            parseFloat(elements.Pf_R3.value),
+                            parseFloat(elements.Pf_R4.value)
+                        ]
+                    }
+                };
+                this.carpalx.updateParameters(params);
+                this.updateEffort();
+            }
+
+            updateModeUI() {
+                if (elements.optModeSelect.value === 'full') {
+                    elements.fullParams.classList.remove('hidden');
+                    elements.partialParams.classList.add('hidden');
+                } else {
+                    elements.fullParams.classList.add('hidden');
+                    elements.partialParams.classList.remove('hidden');
+                }
+            }
+
+            async loadFile(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const text = await file.text();
+                elements.corpusInput.value = text;
+                this.updateEffort();
+            }
 
 			string(key) { return textTranslations[this.language]?.[key] ?? key; }
 			format(value, options = {}) { return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US', options); }
@@ -360,7 +553,6 @@
                 this.carpalx.keys.forEach((row, r) => {
                     const rowEl = document.createElement('div');
                     rowEl.className = 'kb-row';
-                    // Add spacers for rows to look like a keyboard
                     const offsets = [0, 20, 35, 50];
                     rowEl.style.paddingLeft = offsets[r] + 'px';
 
@@ -375,7 +567,6 @@
             }
 
             getTriads(text) {
-                // English mode logic: lowercase, reject non-letters, reject repeats
                 let line = text.toLowerCase().replace(/[^a-z]/g, '');
                 let triads = {};
                 for (let i = 0; i < line.length - 2; i++) {
@@ -409,7 +600,39 @@
                 this.optimizing = true;
                 elements.optimizeBtn.textContent = this.string('optimizing');
 
-                const maxIterations = 5000;
+                if (elements.optModeSelect.value === 'partial') {
+                    await this.runPartialOptimization(triads);
+                } else {
+                    await this.runFullOptimization(triads);
+                }
+
+                this.optimizing = false;
+                elements.optimizeBtn.textContent = this.string('optimizeBtn');
+                this.renderKeyboard();
+            }
+
+            async runPartialOptimization(triads) {
+                const maxSwaps = parseInt(elements.maxSwaps.value) || 10;
+                let currentEffort = this.carpalx.calculateEffort(triads);
+                elements.temperature.textContent = 'N/A';
+
+                for (let i = 1; i <= maxSwaps && this.optimizing; i++) {
+                    const result = this.carpalx.findBestSwap(triads);
+                    if (result.bestSwap) {
+                        this.carpalx.swapKeys(result.bestSwap[0], result.bestSwap[1]);
+                        currentEffort = result.bestEffort;
+                        elements.iterations.textContent = i;
+                        elements.totalEffort.textContent = currentEffort.toFixed(6);
+                        this.renderKeyboard();
+                        await new Promise(r => setTimeout(r, 100));
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            async runFullOptimization(triads) {
+                const maxIterations = parseInt(elements.maxIterations.value) || 5000;
                 const t0 = 10;
                 const k = 10;
                 const p0 = 1;
@@ -456,15 +679,46 @@
                         await new Promise(r => setTimeout(r, 0));
                     }
                 }
+            }
 
-                this.optimizing = false;
-                elements.optimizeBtn.textContent = this.string('optimizeBtn');
-                this.renderKeyboard();
+            resetParams() {
+                elements.kb.value = 0.3555;
+                elements.kp.value = 0.6423;
+                elements.ks.value = 0.4268;
+                elements.k1.value = 1;
+                elements.k2.value = 0.367;
+                elements.k3.value = 0.235;
+                elements.w0.value = 0;
+                elements.wh.value = 1;
+                elements.wr.value = 1.3088;
+                elements.wf.value = 2.5948;
+                elements.fh.value = 1;
+                elements.fr.value = 0.3;
+                elements.ff.value = 0.3;
+                elements.path_offset.value = 0;
+                elements.Pr_0.value = 1.5;
+                elements.Pr_1.value = 0.5;
+                elements.Pr_2.value = 0;
+                elements.Pr_3.value = 1;
+                elements.Ph_L.value = 0;
+                elements.Ph_R.value = 0;
+                elements.Pf_L0.value = 1;
+                elements.Pf_L1.value = 0.5;
+                elements.Pf_L2.value = 0;
+                elements.Pf_L3.value = 0;
+                elements.Pf_L4.value = 0;
+                elements.Pf_R0.value = 0;
+                elements.Pf_R1.value = 0;
+                elements.Pf_R2.value = 0.5;
+                elements.Pf_R3.value = 1;
+                elements.Pf_R4.value = 0;
+                this.syncParameters();
             }
 
             reset() {
                 this.optimizing = false;
                 this.carpalx = new Carpalx();
+                this.resetParams();
                 this.renderKeyboard();
                 this.updateEffort();
                 elements.iterations.textContent = '0';

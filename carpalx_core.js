@@ -117,28 +117,35 @@ const pathCosts = {
 
 class Carpalx {
     constructor() {
-        this.k1 = 1;
-        this.k2 = 0.367;
-        this.k3 = 0.235;
+        // Effort component weights
         this.kb = 0.3555;
         this.kp = 0.6423;
         this.ks = 0.4268;
 
-        this.weights = {
-            hand: 1,
-            row: 1.3088,
-            finger: 2.5948
+        // Triad interaction parameters
+        this.k1 = 1;
+        this.k2 = 0.367;
+        this.k3 = 0.235;
+
+        // Penalty weights
+        this.w0 = 0;
+        this.wh = 1;
+        this.wr = 1.3088;
+        this.wf = 2.5948;
+
+        // Penalties
+        this.Ph = { left: 0, right: 0 };
+        this.Pr = [1.5, 0.5, 0, 1]; // row 0, 1, 2, 3
+        this.Pf = {
+            left: [1, 0.5, 0, 0, 0], // pinky to thumb (thumb is index 4)
+            right: [0, 0, 0, 0.5, 1] // thumb to pinky (thumb is index 0)
         };
 
-        this.penalties = {
-            default: 0,
-            row: [1.5, 0.5, 0, 1], // row 0, 1, 2, 3
-            hand: { left: 0, right: 0 },
-            finger: {
-                left: [1, 0.5, 0, 0, 0],
-                right: [0, 0, 0, 0.5, 1]
-            }
-        };
+        // Stroke path weights
+        this.fh = 1;
+        this.fr = 0.3;
+        this.ff = 0.3;
+        this.path_offset = 0;
 
         this.baseEfforts = [
             [5, 4, 4, 4, 4, 4, 4.5, 4, 4, 4, 4, 4.5, 5.5],
@@ -214,23 +221,49 @@ class Carpalx {
 
     calculateKeyEffort(key) {
         let r = key.row;
-        let c = key.col;
         let hand = key.hand;
         let finger = key.finger;
 
-        let baseEffort = this.baseEfforts[r][c];
-        let handPenalty = hand === 1 ? this.penalties.hand.right : this.penalties.hand.left;
-        let fingerPenalty = hand === 0 ? this.penalties.finger.left[finger] : this.penalties.finger.right[finger - 5];
-        let rowPenalty = this.penalties.row[r] || 0;
+        let baseEffort = this.baseEfforts[r][key.col];
+        let Ph = hand === 1 ? this.Ph.right : this.Ph.left;
+        let Pf = hand === 0 ? this.Pf.left[finger] : this.Pf.right[finger - 5];
+        let Pr = this.Pr[r] || 0;
 
-        let penaltyEffort = this.penalties.default +
-            this.weights.hand * handPenalty +
-            this.weights.row * rowPenalty +
-            this.weights.finger * fingerPenalty;
+        let penaltyEffort = this.w0 + this.wh * Ph + this.wr * Pr + this.wf * Pf;
 
         key.effort.base = baseEffort;
         key.effort.penalty = penaltyEffort;
         key.effort.total = this.kb * baseEffort + this.kp * penaltyEffort;
+    }
+
+    updateParameters(params) {
+        if (params.kb !== undefined) this.kb = params.kb;
+        if (params.kp !== undefined) this.kp = params.kp;
+        if (params.ks !== undefined) this.ks = params.ks;
+        if (params.k1 !== undefined) this.k1 = params.k1;
+        if (params.k2 !== undefined) this.k2 = params.k2;
+        if (params.k3 !== undefined) this.k3 = params.k3;
+        if (params.w0 !== undefined) this.w0 = params.w0;
+        if (params.wh !== undefined) this.wh = params.wh;
+        if (params.wr !== undefined) this.wr = params.wr;
+        if (params.wf !== undefined) this.wf = params.wf;
+        if (params.fh !== undefined) this.fh = params.fh;
+        if (params.fr !== undefined) this.fr = params.fr;
+        if (params.ff !== undefined) this.ff = params.ff;
+        if (params.path_offset !== undefined) this.path_offset = params.path_offset;
+
+        if (params.Pr) this.Pr = [...params.Pr];
+        if (params.Ph) Object.assign(this.Ph, params.Ph);
+        if (params.Pf) {
+            if (params.Pf.left) this.Pf.left = [...params.Pf.left];
+            if (params.Pf.right) this.Pf.right = [...params.Pf.right];
+        }
+
+        for (let r = 0; r < this.keys.length; r++) {
+            for (let c = 0; c < this.keys[r].length; c++) {
+                this.calculateKeyEffort(this.keys[r][c]);
+            }
+        }
     }
 
     calculateEffort(triads) {
@@ -249,10 +282,8 @@ class Carpalx {
     }
 
     calculateTriadEffort(triad) {
-        if (triad.length !== 3) return 0;
         let c1 = triad[0], c2 = triad[1], c3 = triad[2];
         let k1 = this.map[c1], k2 = this.map[c2], k3 = this.map[c3];
-        if (!k1 || !k2 || !k3) return 0;
 
         let be1 = k1.effort.base, be2 = k2.effort.base, be3 = k3.effort.base;
         let pe1 = k1.effort.penalty, pe2 = k2.effort.penalty, pe3 = k3.effort.penalty;
@@ -295,7 +326,6 @@ class Carpalx {
             let r_diff12 = r1 - r2;
             let r_diff13 = r1 - r3;
             let r_diff23 = r2 - r3;
-
             let diffs = [
                 { abs: Math.abs(r_diff12), val: r_diff12 },
                 { abs: Math.abs(r_diff13), val: r_diff13 },
@@ -323,9 +353,11 @@ class Carpalx {
                 else row_flag = 0;
             }
 
-            let path_flag = `${hand_flag}${row_flag}${finger_flag}`;
-            let path_cost = pathCosts[path_flag] || 0;
-            triad_effort += this.ks * path_cost;
+            let path_cost = pathCosts[`${hand_flag}${row_flag}${finger_flag}`];
+            if (path_cost === undefined) {
+                path_cost = this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag;
+            }
+            triad_effort += this.ks * (this.path_offset + path_cost);
         }
 
         return triad_effort;
@@ -358,8 +390,37 @@ class Carpalx {
         return list;
     }
 
+    findBestSwap(triads) {
+        const relocatable = this.getRelocatableKeys();
+        let bestSwap = null;
+        let bestEffort = this.calculateEffort(triads);
+
+        for (let i = 0; i < relocatable.length; i++) {
+            for (let j = i + 1; j < relocatable.length; j++) {
+                const k1 = relocatable[i];
+                const k2 = relocatable[j];
+
+                this.swapKeys(k1, k2);
+                const newEffort = this.calculateEffort(triads);
+                if (newEffort < bestEffort) {
+                    bestEffort = newEffort;
+                    bestSwap = [k1, k2];
+                }
+                this.swapKeys(k1, k2); // swap back
+            }
+        }
+        return { bestSwap, bestEffort };
+    }
+
     copy() {
         let newCarpalx = new Carpalx();
+        newCarpalx.updateParameters({
+            kb: this.kb, kp: this.kp, ks: this.ks,
+            k1: this.k1, k2: this.k2, k3: this.k3,
+            w0: this.w0, wh: this.wh, wr: this.wr, wf: this.wf,
+            fh: this.fh, fr: this.fr, ff: this.ff, path_offset: this.path_offset,
+            Pr: this.Pr, Ph: this.Ph, Pf: this.Pf
+        });
         for (let r = 0; r < this.keys.length; r++) {
             for (let c = 0; c < this.keys[r].length; c++) {
                 let key = this.keys[r][c];

@@ -222,9 +222,23 @@ class Carpalx:
         self.triads = Corpus(self.config['corpus'], self.config).triads
 
     def optimize(self):
-        print("Optimizing keyboard...")
-        optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
-        self.keyboard = optimizer.run()
+        mode = self.config.get('annealing', {}).get('mode', 'full')
+        if mode == 'partial':
+            print("Running Partial Optimization (Iterative Key Swaps)...")
+            max_swaps = int(self.config.get('annealing', {}).get('maxswaps', 10))
+            optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
+            for i in range(1, max_swaps + 1):
+                best_swap, best_effort = optimizer.find_best_swap()
+                if best_swap:
+                    self.keyboard.swap_keys(best_swap[0], best_swap[1])
+                    print(f"Swap {i}: Swapped {self.keyboard.keys[best_swap[0][0]][best_swap[0][1]]['lc']} and {self.keyboard.keys[best_swap[1][0]][best_swap[1][1]]['lc']}, Effort: {best_effort:.4f}")
+                else:
+                    break
+        else:
+            print("Optimizing keyboard (Full Simulated Annealing)...")
+            optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
+            self.keyboard = optimizer.run()
+
         if 'keyboard_output' in self.config:
             out_file = self.config['keyboard_output']
             print(f"Saving optimized keyboard to {out_file}")
@@ -403,9 +417,20 @@ class Keyboard:
             elif r2 < r3: row_flag = 1
             else: row_flag = 0
         path_key = f"{hand_flag}{row_flag}{finger_flag}"
-        cost_str = path_cost_conf.get(path_key, "0")
+        cost_str = path_cost_conf.get(path_key, 0)
         if '#' in str(cost_str): cost_str = str(cost_str).split('#')[0]
-        return float(cost_str)
+
+        path_offset = float(self.config['effort_model']['weight_param']['penalties'].get('path_offset', 0))
+        fh = float(self.config['effort_model']['path_cost'].get('fh', 1))
+        fr = float(self.config['effort_model']['path_cost'].get('fr', 0.3))
+        ff = float(self.config['effort_model']['path_cost'].get('ff', 0.3))
+
+        # If path_key exists in config, use it directly as in the original Perl implementation.
+        # Otherwise, calculate it using fh, fr, ff weights.
+        if path_key in path_cost_conf:
+            return path_offset + float(cost_str)
+        else:
+            return path_offset + (fh * hand_flag + fr * row_flag + ff * finger_flag)
 
     def save(self, filepath):
         with open(filepath, 'w') as f:
@@ -490,6 +515,24 @@ class SimulatedAnnealing:
         self.k = float(self.params.get('k', 10))
         self.p0 = float(self.params.get('p0', 1))
         self.relocatable = self._get_relocatable_keys()
+
+    def find_best_swap(self):
+        best_swap = None
+        current_effort = self.keyboard.calculate_effort(self.triads)
+        best_effort = current_effort
+
+        for i in range(len(self.relocatable)):
+            for j in range(i + 1, len(self.relocatable)):
+                k1 = self.relocatable[i]
+                k2 = self.relocatable[j]
+
+                self.keyboard.swap_keys(k1, k2)
+                new_effort = self.keyboard.calculate_effort(self.triads)
+                if new_effort < best_effort:
+                    best_effort = new_effort
+                    best_swap = (k1, k2)
+                self.keyboard.swap_keys(k1, k2) # swap back
+        return best_swap, best_effort
 
     def _get_relocatable_keys(self):
         reloc = []
