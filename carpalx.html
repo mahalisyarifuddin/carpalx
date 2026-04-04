@@ -631,7 +631,7 @@ class Carpalx {
         this.restrictSameRow = false;
 
         this.fingers = [
-            [0, 1, 1, 2, 3, 3, 3, 6, 7, 7, 8, 9, 9],
+            [0, 0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9],
             [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9, 9],
             [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9],
             [0, 1, 2, 3, 3, 6, 6, 7, 8, 9]
@@ -1209,9 +1209,9 @@ const textTranslations = {
                 this.carpalx.keys.forEach((row, r) => {
                     const rowEl = document.createElement('div');
                     rowEl.className = 'kb-row';
-                    // 1/3 key width stagger: [0, 16.33, 32.66, 49]
-                    // (45px width + 4px gap) / 3 = 16.33px
-                    const offsets = [0, 16.33, 32.66, 49];
+                // Staggering to align 1, q, a, z (gamers' WASD cluster)
+                // Row 1 shifted by 1 key width (45+4=49px) relative to Row 0
+                const offsets = [0, 49, 49, 49];
                     rowEl.style.paddingLeft = offsets[r] + 'px';
 
                     row.forEach((key, c) => {
