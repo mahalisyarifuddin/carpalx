@@ -1,27 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<title>Carpalx Keyboard Optimizer</title>
-	<style>
-		:root {
-			--primary: #005dac;
-			--on-primary: #ffffff;
-			--hover: #00539a;
-			--background: #f9f9ff;
-			--surface: #ffffff;
-			--text: #181c21;
-			--border: #c1c6d4;
-			--muted: #f2f3fc;
-			--success: #0b6b1d;
-			--on-success: #ffffff;
-			--danger: #ba1a1a;
-			--on-danger: #ffffff;
-			--highlight-bg: #d4e3ff;
-		}
-		@media (prefers-color-scheme: dark) {
-			:root:not(.light) {
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<title>Carpalx Keyboard Optimizer</title>
+		<style>
+			:root {
+				--primary: #005dac;
+				--on-primary: #ffffff;
+				--hover: #00539a;
+				--background: #f9f9ff;
+				--surface: #ffffff;
+				--text: #181c21;
+				--border: #c1c6d4;
+				--muted: #f2f3fc;
+				--success: #0b6b1d;
+				--on-success: #ffffff;
+				--danger: #ba1a1a;
+				--on-danger: #ffffff;
+				--highlight-bg: #d4e3ff;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root:not(.light) {
+					--primary: #a5c8ff;
+					--on-primary: #00315f;
+					--hover: #72adff;
+					--background: #101319;
+					--surface: #0b0e14;
+					--text: #e0e2ea;
+					--border: #414752;
+					--muted: #181c21;
+					--success: #82db7e;
+					--on-success: #00390a;
+					--danger: #ffb4ab;
+					--on-danger: #93000a;
+					--highlight-bg: #001c3a;
+				}
+			}
+
+			:root.dark {
 				--primary: #a5c8ff;
 				--on-primary: #00315f;
 				--hover: #72adff;
@@ -36,1397 +54,1654 @@
 				--on-danger: #93000a;
 				--highlight-bg: #001c3a;
 			}
-		}
-		:root.dark {
-			--primary: #a5c8ff;
-			--on-primary: #00315f;
-			--hover: #72adff;
-			--background: #101319;
-			--surface: #0b0e14;
-			--text: #e0e2ea;
-			--border: #414752;
-			--muted: #181c21;
-			--success: #82db7e;
-			--on-success: #00390a;
-			--danger: #ffb4ab;
-			--on-danger: #93000a;
-			--highlight-bg: #001c3a;
-		}
-		* {
-			box-sizing: border-box;
-			margin: 0;
-			padding: 0;
-			outline-offset: 2px;
-		}
-		*:focus-visible {
-			outline: 2px solid var(--primary);
-		}
-		body {
-			background: var(--background);
-			color: var(--text);
-			font-family: sans-serif;
-			display: flex;
-			justify-content: center;
-			min-height: 100vh;
-			padding: 1rem;
-		}
-		.container {
-			background: var(--surface);
-			border: 1px solid var(--border);
-			border-radius: 8px;
-			max-width: 1000px;
-			padding: 2rem;
-			width: 100%;
-			position: relative;
-			margin: 2rem 0;
-		}
-		.hidden {
-			display: none !important;
-		}
-		h1, h2, h3, label {
-			margin: .5rem 0;
-		}
-		label {
-			display: block;
-			font-weight: 700;
-            font-size: 0.9rem;
-		}
-		input, select, button, textarea {
-			background: var(--surface);
-			border: 1px solid var(--border);
-			border-radius: 4px;
-			color: var(--text);
-			font-size: 1rem;
-			padding: .5rem;
-			width: 100%;
-		}
-		textarea {
-			resize: vertical;
-			min-height: 120px;
-		}
-		button {
-			cursor: pointer;
-		}
-		button:disabled {
-			opacity: .6;
-			cursor: not-allowed;
-		}
-		.primary {
-			background: var(--primary);
-			color: var(--on-primary);
-			border: 0;
-		}
-		.primary:hover:not(:disabled) {
-			background: var(--hover);
-		}
-		.secondary:hover:not(:disabled) {
-			background: var(--muted);
-		}
-		.danger {
-			background: var(--danger);
-			color: var(--on-danger);
-			border: 0;
-		}
-		.success {
-			background: var(--success);
-			color: var(--on-success);
-			border: 0;
-		}
-		.selectors {
-			position: absolute;
-			right: 2rem;
-			top: 1rem;
-			display: flex;
-			gap: 8px;
-		}
-		.selectors select {
-			width: auto;
-			font-size: .9rem;
-		}
-		.row {
-			display: flex;
-			gap: 1rem;
-			margin-bottom: 1rem;
-		}
-		.group {
-			flex: 1;
-		}
-		table {
-			border-collapse: collapse;
-			margin-top: 1rem;
-			width: 100%;
-			font-size: .9rem;
-		}
-		th, td {
-			border: 1px solid var(--border);
-			padding: .5rem;
-			text-align: left;
-		}
-		th {
-			background: var(--primary);
-			color: var(--on-primary);
-		}
-		.error {
-			color: var(--danger);
-			font-size: .9rem;
-			margin: 1rem 0;
-			display: block;
-			font-weight: 500;
-		}
-		.info {
-			font-size: .9rem;
-			opacity: .8;
-			line-height: 1.6;
-            margin-bottom: 2rem;
-		}
-		@media(max-width: 768px) {
+
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+				outline-offset: 2px;
+			}
+
+			*:focus-visible {
+				outline: 2px solid var(--primary);
+			}
+
+			body {
+				background: var(--background);
+				color: var(--text);
+				font-family: sans-serif;
+				display: flex;
+				justify-content: center;
+				min-height: 100vh;
+				padding: 1rem;
+			}
+
+			.container {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				max-width: 1000px;
+				padding: 2rem;
+				width: 100%;
+				position: relative;
+				margin: 2rem 0;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			h1, h2, h3, label {
+				margin: .5rem 0;
+			}
+
+			label {
+				display: block;
+				font-weight: 700;
+				font-size: 0.9rem;
+			}
+
+			input, select, button, textarea {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				color: var(--text);
+				font-size: 1rem;
+				padding: .5rem;
+				width: 100%;
+			}
+
+			textarea {
+				resize: vertical;
+				min-height: 120px;
+			}
+
+			button {
+				cursor: pointer;
+			}
+
+			button:disabled {
+				opacity: .6;
+				cursor: not-allowed;
+			}
+
+			.primary {
+				background: var(--primary);
+				color: var(--on-primary);
+				border: 0;
+			}
+
+			.primary:hover:not(:disabled) {
+				background: var(--hover);
+			}
+
+			.secondary:hover:not(:disabled) {
+				background: var(--muted);
+			}
+
+			.danger {
+				background: var(--danger);
+				color: var(--on-danger);
+				border: 0;
+			}
+
+			.success {
+				background: var(--success);
+				color: var(--on-success);
+				border: 0;
+			}
+
 			.selectors {
-				position: static;
-				justify-content: end;
-				margin-bottom: .5rem;
+				position: absolute;
+				right: 2rem;
+				top: 1rem;
+				display: flex;
+				gap: 8px;
 			}
+
+			.selectors select {
+				width: auto;
+				font-size: .9rem;
+			}
+
 			.row {
+				display: flex;
+				gap: 1rem;
+				margin-bottom: 1rem;
+			}
+
+			.group {
+				flex: 1;
+			}
+
+			table {
+				border-collapse: collapse;
+				margin-top: 1rem;
+				width: 100%;
+				font-size: .9rem;
+			}
+
+			th, td {
+				border: 1px solid var(--border);
+				padding: .5rem;
+				text-align: left;
+			}
+
+			th {
+				background: var(--primary);
+				color: var(--on-primary);
+			}
+
+			.error {
+				color: var(--danger);
+				font-size: .9rem;
+				margin: 1rem 0;
+				display: block;
+				font-weight: 500;
+			}
+
+			.info {
+				font-size: .9rem;
+				opacity: .8;
+				line-height: 1.6;
+				margin-bottom: 2rem;
+			}
+
+			@media(max-width: 768px) {
+				.selectors {
+					position: static;
+					justify-content: end;
+					margin-bottom: .5rem;
+				}
+
+				.row {
+					flex-direction: column;
+				}
+			}
+
+			.keyboard {
+				--key-size: 45px;
+				--kg: 4px;
+				display: flex;
 				flex-direction: column;
+				gap: var(--kg);
+				margin: 1.5rem 0;
+				user-select: none;
+				overflow-x: auto;
+				padding-bottom: 2px;
 			}
-		}
 
-        .keyboard {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin: 1.5rem 0;
-            user-select: none;
-            overflow-x: auto;
-            padding-bottom: 0.5rem;
-            pointer-events: all;
-        }
-        .kb-row {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            min-width: 650px;
-        }
-        .key {
-            width: 45px;
-            height: 45px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: var(--muted);
-            font-size: 0.8rem;
-            position: relative;
-            transition: background 0.2s;
-        }
-        .key .uc { font-weight: bold; }
-        .key .lc { font-size: 0.75rem; color: var(--text); opacity: 0.8; }
-        .key.relocatable { border-color: var(--primary); background: var(--surface); cursor: pointer; }
-        .key:not(.relocatable) { border-style: dashed; opacity: 0.7; cursor: pointer; }
-        .key.highlight { background: var(--highlight-bg); border-color: var(--primary); }
+			.kb-row {
+				display: flex;
+				gap: var(--kg);
+				flex-shrink: 0;
+			}
 
-        .stats {
-            margin-top: 1rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-        }
-        .stat-card {
-            border: 1px solid var(--border);
-            padding: 1rem;
-            border-radius: 4px;
-            background: var(--surface);
-        }
-        .stat-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
-        .stat-val { font-size: 1.25rem; font-weight: bold; color: var(--primary); font-family: monospace; }
+			.key {
+				width: var(--key-size);
+				height: var(--key-size);
+				flex: 0 0 var(--key-size);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				background: var(--muted);
+				overflow: hidden;
+				position: relative;
+				transition: background 0.2s;
+				cursor: pointer;
+			}
 
-        .panel {
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            background: var(--muted);
-            overflow: hidden;
-        }
-        .panel-header {
-            padding: 0.75rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-        }
-        .panel-header:hover {
-            background: var(--muted);
-        }
-        .panel-header h3 {
-            margin: 0;
-            font-size: 1rem;
-        }
-        .panel-content {
-            padding: 1rem;
-        }
-        .panel-content.collapsed {
-            display: none;
-        }
-        .panel-header.collapsed + .panel-content {
-            display: none;
-        }
-        .toggle-icon::after {
-            content: '▼';
-            font-size: 0.8rem;
-            transition: transform 0.2s;
-            display: inline-block;
-        }
-        .panel-header.collapsed .toggle-icon::after {
-            transform: rotate(-90deg);
-        }
-        .grid-params {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.75rem;
-        }
-        .grid-params .group label { font-size: 0.75rem; }
-        .grid-params input { padding: 0.25rem; font-size: 0.85rem; }
-	</style>
-</head>
-<body>
-	<div class="container">
-		<div class="selectors">
-			<select id="language"><option value="en">English</option><option value="id">Bahasa Indonesia</option></select>
-			<select id="theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select>
+			.key .uc {
+				font-weight: bold;
+				font-size: calc(var(--key-size) * 0.3);
+				line-height: 1.1;
+			}
+
+			.key .lc {
+				font-size: calc(var(--key-size) * 0.23);
+				opacity: 0.8;
+				line-height: 1.1;
+			}
+
+			.key.relocatable {
+				border-color: var(--primary);
+				background: var(--surface);
+			}
+
+			.key:not(.relocatable) {
+				border-style: dashed;
+				opacity: 0.7;
+			}
+
+			.key.highlight {
+				background: var(--highlight-bg);
+				border-color: var(--primary);
+			}
+
+			.stats {
+				margin-top: 1rem;
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+				gap: 1rem;
+			}
+
+			.stat-card {
+				border: 1px solid var(--border);
+				padding: 1rem;
+				border-radius: 4px;
+				background: var(--surface);
+			}
+
+			.stat-label {
+				font-size: 0.85rem;
+				font-weight: 600;
+				margin-bottom: 0.25rem;
+			}
+
+			.stat-val {
+				font-size: 1.25rem;
+				font-weight: bold;
+				color: var(--primary);
+				font-family: monospace;
+			}
+
+			.panel {
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				margin-bottom: 1.5rem;
+				background: var(--muted);
+				overflow: hidden;
+			}
+
+			.panel-header {
+				padding: 0.75rem 1rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				cursor: pointer;
+				user-select: none;
+				background: var(--surface);
+				border-bottom: 1px solid var(--border);
+			}
+
+			.panel-header:hover {
+				background: var(--muted);
+			}
+
+			.panel-header h3 {
+				margin: 0;
+				font-size: 1rem;
+			}
+
+			.panel-content {
+				padding: 1rem;
+			}
+
+			.panel-content.collapsed {
+				display: none;
+			}
+
+			.panel-header.collapsed + .panel-content {
+				display: none;
+			}
+
+			.toggle-icon::after {
+				content: '▼';
+				font-size: 0.8rem;
+				transition: transform 0.2s;
+				display: inline-block;
+			}
+
+			.panel-header.collapsed .toggle-icon::after {
+				transform: rotate(-90deg);
+			}
+
+			.grid-params {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+				gap: 0.75rem;
+			}
+
+			.grid-params .group label {
+				font-size: 0.75rem;
+			}
+
+			.grid-params input {
+				padding: 0.25rem;
+				font-size: 0.85rem;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="selectors">
+				<select id="language">
+					<option value="en">English</option>
+					<option value="id">Bahasa Indonesia</option>
+				</select>
+				<select id="theme">
+					<option value="auto">Auto</option>
+					<option value="light">Light</option>
+					<option value="dark">Dark</option>
+				</select>
+			</div>
+			<h1 id="title"></h1>
+			<p id="subtitle" class="info"></p>
+			<div class="panel" id="optimizationPanel">
+				<div class="panel-header collapsed">
+					<h3 id="optimizationParamsTitle">Optimization Settings</h3>
+					<span class="toggle-icon"></span>
+				</div>
+				<div class="panel-content collapsed">
+					<div class="row">
+						<div class="group">
+							<label id="baseLayoutLabel" for="baseLayoutSelect">Base Layout</label>
+							<select id="baseLayoutSelect">
+								<option value="qwerty">QWERTY</option>
+								<option value="qwertz">QWERTZ</option>
+								<option value="azerty">AZERTY</option>
+							</select>
+						</div>
+						<div class="group">
+							<label id="optModeLabel" for="optModeSelect">Mode</label>
+							<select id="optModeSelect">
+								<option value="full">Full (Simulated Annealing)</option>
+								<option value="partial">Partial (Iterative Key Swaps)</option>
+							</select>
+						</div>
+						<div class="group" style="display: flex; align-items: flex-end; padding-bottom: 0.5rem;">
+							<label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer;">
+								<input type="checkbox" id="restrictSameRow" style="width: auto;">
+								<span id="restrictSameRowLabel">Restrict to Same Row</span>
+							</label>
+						</div>
+					</div>
+					<div class="row">
+						<div id="fullParams" class="group row" style="gap: 0.5rem; margin-bottom: 0;">
+							<div class="group">
+								<label id="iterationsLimitLabel">Iterations</label>
+								<input type="number" id="maxIterations" value="5000">
+							</div>
+						</div>
+						<div id="partialParams" class="group row hidden" style="gap: 0.5rem; margin-bottom: 0;">
+							<div class="group">
+								<label id="maxSwapsLabel">Max Swaps</label>
+								<input type="number" id="maxSwaps" value="10">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel" id="penaltyPanel">
+				<div class="panel-header collapsed">
+					<h3 id="penaltyParamsTitle">Penalty Parameters</h3>
+					<span class="toggle-icon"></span>
+				</div>
+				<div class="panel-content collapsed">
+					<div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+						<button id="resetParamsBtn" class="secondary" style="width: auto; padding: 0.25rem 0.75rem; font-size: 0.8rem;"></button>
+					</div>
+					<div class="grid-params">
+						<div class="group">
+							<label title="Component weight: base effort">kb</label>
+							<input type="number" step="0.001" id="kb" value="0.3555">
+						</div>
+						<div class="group">
+							<label title="Component weight: penalty effort">kp</label>
+							<input type="number" step="0.001" id="kp" value="0.6423">
+						</div>
+						<div class="group">
+							<label title="Component weight: path effort">ks</label>
+							<input type="number" step="0.001" id="ks" value="0.4268">
+						</div>
+						<div class="group">
+							<label title="Interaction weight: 1st key">k1</label>
+							<input type="number" step="0.001" id="k1" value="1">
+						</div>
+						<div class="group">
+							<label title="Interaction weight: 2nd key">k2</label>
+							<input type="number" step="0.001" id="k2" value="0.367">
+						</div>
+						<div class="group">
+							<label title="Interaction weight: 3rd key">k3</label>
+							<input type="number" step="0.001" id="k3" value="0.235">
+						</div>
+					</div>
+					<div class="grid-params" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+						<div class="group">
+							<label title="Default penalty">w0</label>
+							<input type="number" step="0.1" id="w0" value="0">
+						</div>
+						<div class="group">
+							<label title="Hand weight">wh</label>
+							<input type="number" step="0.1" id="wh" value="1">
+						</div>
+						<div class="group">
+							<label title="Row weight">wr</label>
+							<input type="number" step="0.1" id="wr" value="1.3088">
+						</div>
+						<div class="group">
+							<label title="Finger weight">wf</label>
+							<input type="number" step="0.1" id="wf" value="2.5948">
+						</div>
+						<div class="group">
+							<label title="Path weight: hand">fh</label>
+							<input type="number" step="0.1" id="fh" value="1">
+						</div>
+						<div class="group">
+							<label title="Path weight: row">fr</label>
+							<input type="number" step="0.1" id="fr" value="0.3">
+						</div>
+						<div class="group">
+							<label title="Path weight: finger">ff</label>
+							<input type="number" step="0.1" id="ff" value="0.3">
+						</div>
+						<div class="group">
+							<label title="Path offset">poffset</label>
+							<input type="number" step="0.1" id="path_offset" value="0">
+						</div>
+					</div>
+					<div class="row" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+						<div class="group" style="flex: 1;">
+							<label>Row Penalties (0-3)</label>
+							<div class="grid-params" style="grid-template-columns: repeat(4, 1fr);">
+								<input type="number" step="0.1" id="Pr_0" value="1.5">
+								<input type="number" step="0.1" id="Pr_1" value="0.5">
+								<input type="number" step="0.1" id="Pr_2" value="0">
+								<input type="number" step="0.1" id="Pr_3" value="1">
+							</div>
+						</div>
+						<div class="group" style="flex: 0.5;">
+							<label>Hand Penalties (L, R)</label>
+							<div class="grid-params" style="grid-template-columns: repeat(2, 1fr);">
+								<input type="number" step="0.1" id="Ph_L" value="0">
+								<input type="number" step="0.1" id="Ph_R" value="0">
+							</div>
+						</div>
+					</div>
+					<div class="row" style="margin-top: 0.5rem;">
+						<div class="group">
+							<label>Finger Penalties (L-Pinky to R-Pinky)</label>
+							<div class="grid-params" style="grid-template-columns: repeat(10, 1fr);">
+								<input type="number" step="0.1" id="Pf_L0" value="1" title="Left Pinky">
+								<input type="number" step="0.1" id="Pf_L1" value="0.5" title="Left Ring">
+								<input type="number" step="0.1" id="Pf_L2" value="0" title="Left Middle">
+								<input type="number" step="0.1" id="Pf_L3" value="0" title="Left Index">
+								<input type="number" step="0.1" id="Pf_L4" value="0" title="Left Thumb">
+								<input type="number" step="0.1" id="Pf_R0" value="0" title="Right Thumb">
+								<input type="number" step="0.1" id="Pf_R1" value="0" title="Right Index">
+								<input type="number" step="0.1" id="Pf_R2" value="0" title="Right Middle">
+								<input type="number" step="0.1" id="Pf_R3" value="0.5" title="Right Ring">
+								<input type="number" step="0.1" id="Pf_R4" value="1" title="Right Pinky">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 2rem;">
+				<div class="group">
+					<div id="uploadArea" style="border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 8px; background: var(--muted); cursor: pointer; transition: border-color 0.2s;">
+						<label id="corpusLabel" for="corpusFile" style="cursor: pointer; margin-bottom: 0.5rem;"></label>
+						<input type="file" id="corpusFile" accept=".txt" style="display: none;">
+						<p id="fileNameDisplay" class="info" style="font-weight: 600; margin-bottom: 0; color: var(--primary);">No file loaded</p>
+						<p class="info" style="margin-top: 0.5rem; font-size: 0.8rem;">Click or drag and drop a .txt file here</p>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="group">
+					<button id="optimizeBtn" class="primary"></button>
+				</div>
+				<div class="group">
+					<button id="resetBtn" class="secondary"></button>
+				</div>
+			</div>
+			<div id="keyboard" class="keyboard"></div>
+			<div class="stats">
+				<div class="stat-card">
+					<div id="effortLabel" class="stat-label"></div>
+					<div id="totalEffort" class="stat-val">0.000000</div>
+				</div>
+				<div class="stat-card">
+					<div id="iterationsLabel" class="stat-label"></div>
+					<div id="iterations" class="stat-val">0</div>
+				</div>
+				<div class="stat-card">
+					<div id="tempLabel" class="stat-label"></div>
+					<div id="temperature" class="stat-val">0.000000</div>
+				</div>
+			</div>
 		</div>
-		<h1 id="title"></h1>
-		<p id="subtitle" class="info"></p>
+		<script>
+			const pathCosts = {
+				"000": 0.0,
+				"001": 0.3,
+				"002": 0.6,
+				"003": 0.9,
+				"006": 1.8,
+				"010": 0.3,
+				"011": 0.6,
+				"012": 0.9,
+				"013": 1.2,
+				"016": 2.1,
+				"020": 0.6,
+				"021": 0.9,
+				"022": 1.2,
+				"023": 1.5,
+				"026": 2.4,
+				"030": 0.9,
+				"032": 1.5,
+				"033": 1.8,
+				"036": 2.7,
+				"040": 1.2,
+				"042": 1.8,
+				"043": 2.1,
+				"046": 3.0,
+				"050": 1.5,
+				"052": 2.1,
+				"053": 2.4,
+				"056": 3.3,
+				"060": 1.8,
+				"062": 2.4,
+				"063": 2.7,
+				"066": 3.6,
+				"070": 2.1,
+				"072": 2.7,
+				"073": 3.0,
+				"076": 3.9,
+				"102": 1.6,
+				"103": 1.9,
+				"104": 2.2,
+				"112": 1.9,
+				"113": 2.2,
+				"114": 2.5,
+				"122": 2.2,
+				"123": 2.5,
+				"124": 2.8,
+				"132": 2.5,
+				"133": 2.8,
+				"134": 3.1,
+				"142": 2.8,
+				"143": 3.1,
+				"144": 3.4,
+				"152": 3.1,
+				"153": 3.4,
+				"154": 3.7,
+				"162": 3.4,
+				"163": 3.7,
+				"164": 4.0,
+				"172": 3.7,
+				"173": 4.0,
+				"174": 4.3,
+				"200": 2.0,
+				"201": 2.3,
+				"202": 2.6,
+				"203": 2.9,
+				"204": 3.2,
+				"205": 3.5,
+				"206": 3.8,
+				"210": 2.3,
+				"211": 2.6,
+				"212": 2.9,
+				"213": 3.2,
+				"214": 3.5,
+				"215": 3.8,
+				"216": 4.1,
+				"217": 4.4,
+				"220": 2.6,
+				"221": 2.9,
+				"222": 3.2,
+				"223": 3.5,
+				"224": 3.8,
+				"225": 4.1,
+				"226": 4.4,
+				"227": 4.7,
+				"230": 2.9,
+				"232": 3.5,
+				"233": 3.8,
+				"234": 4.1,
+				"235": 4.4,
+				"236": 4.7,
+				"237": 5.0,
+				"240": 3.2,
+				"242": 3.8,
+				"243": 4.1,
+				"244": 4.4,
+				"246": 5.0,
+				"247": 5.3,
+				"250": 3.5,
+				"252": 4.1,
+				"253": 4.4,
+				"254": 4.7,
+				"256": 5.3,
+				"257": 5.6,
+				"260": 3.8,
+				"262": 4.4,
+				"263": 4.7,
+				"264": 5.0,
+				"266": 5.6,
+				"267": 5.9,
+				"270": 4.1,
+				"272": 4.7,
+				"273": 5.0,
+				"274": 5.3,
+				"275": 5.6,
+				"276": 5.9,
+				"277": 6.2
+			};
 
-        <div class="panel" id="optimizationPanel">
-            <div class="panel-header collapsed">
-                <h3 id="optimizationParamsTitle">Optimization Settings</h3>
-                <span class="toggle-icon"></span>
-            </div>
-            <div class="panel-content collapsed">
-            <div class="row">
-                <div class="group">
-                    <label id="baseLayoutLabel" for="baseLayoutSelect">Base Layout</label>
-                    <select id="baseLayoutSelect">
-                        <option value="qwerty">QWERTY</option>
-                        <option value="qwertz">QWERTZ</option>
-                        <option value="azerty">AZERTY</option>
-                    </select>
-                </div>
-                <div class="group">
-                    <label id="optModeLabel" for="optModeSelect">Mode</label>
-                    <select id="optModeSelect">
-                        <option value="full">Full (Simulated Annealing)</option>
-                        <option value="partial">Partial (Iterative Key Swaps)</option>
-                    </select>
-                </div>
-                <div class="group" style="display: flex; align-items: flex-end; padding-bottom: 0.5rem;">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer;">
-                        <input type="checkbox" id="restrictSameRow" style="width: auto;">
-                        <span id="restrictSameRowLabel">Restrict to Same Row</span>
-                    </label>
-                </div>
-            </div>
-            <div class="row">
-                <div id="fullParams" class="group row" style="gap: 0.5rem; margin-bottom: 0;">
-                    <div class="group">
-                        <label id="iterationsLimitLabel">Iterations</label>
-                        <input type="number" id="maxIterations" value="5000">
-                    </div>
-                </div>
-                <div id="partialParams" class="group row hidden" style="gap: 0.5rem; margin-bottom: 0;">
-                    <div class="group">
-                        <label id="maxSwapsLabel">Max Swaps</label>
-                        <input type="number" id="maxSwaps" value="10">
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
+			class Carpalx {
+				constructor() {
+					this.kb = 0.3555;
+					this.kp = 0.6423;
+					this.ks = 0.4268;
 
-        <div class="panel" id="penaltyPanel">
-            <div class="panel-header collapsed">
-                <h3 id="penaltyParamsTitle">Penalty Parameters</h3>
-                <span class="toggle-icon"></span>
-            </div>
-            <div class="panel-content collapsed">
-            <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <button id="resetParamsBtn" class="secondary" style="width: auto; padding: 0.25rem 0.75rem; font-size: 0.8rem;"></button>
-            </div>
-            <div class="grid-params">
-                <div class="group"><label title="Component weight: base effort">kb</label><input type="number" step="0.001" id="kb" value="0.3555"></div>
-                <div class="group"><label title="Component weight: penalty effort">kp</label><input type="number" step="0.001" id="kp" value="0.6423"></div>
-                <div class="group"><label title="Component weight: path effort">ks</label><input type="number" step="0.001" id="ks" value="0.4268"></div>
-                <div class="group"><label title="Interaction weight: 1st key">k1</label><input type="number" step="0.001" id="k1" value="1"></div>
-                <div class="group"><label title="Interaction weight: 2nd key">k2</label><input type="number" step="0.001" id="k2" value="0.367"></div>
-                <div class="group"><label title="Interaction weight: 3rd key">k3</label><input type="number" step="0.001" id="k3" value="0.235"></div>
-            </div>
-            <div class="grid-params" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-                <div class="group"><label title="Default penalty">w0</label><input type="number" step="0.1" id="w0" value="0"></div>
-                <div class="group"><label title="Hand weight">wh</label><input type="number" step="0.1" id="wh" value="1"></div>
-                <div class="group"><label title="Row weight">wr</label><input type="number" step="0.1" id="wr" value="1.3088"></div>
-                <div class="group"><label title="Finger weight">wf</label><input type="number" step="0.1" id="wf" value="2.5948"></div>
-                <div class="group"><label title="Path weight: hand">fh</label><input type="number" step="0.1" id="fh" value="1"></div>
-                <div class="group"><label title="Path weight: row">fr</label><input type="number" step="0.1" id="fr" value="0.3"></div>
-                <div class="group"><label title="Path weight: finger">ff</label><input type="number" step="0.1" id="ff" value="0.3"></div>
-                <div class="group"><label title="Path offset">poffset</label><input type="number" step="0.1" id="path_offset" value="0"></div>
-            </div>
-            <div class="row" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
-                <div class="group" style="flex: 1;">
-                    <label>Row Penalties (0-3)</label>
-                    <div class="grid-params" style="grid-template-columns: repeat(4, 1fr);">
-                        <input type="number" step="0.1" id="Pr_0" value="1.5">
-                        <input type="number" step="0.1" id="Pr_1" value="0.5">
-                        <input type="number" step="0.1" id="Pr_2" value="0">
-                        <input type="number" step="0.1" id="Pr_3" value="1">
-                    </div>
-                </div>
-                <div class="group" style="flex: 0.5;">
-                    <label>Hand Penalties (L, R)</label>
-                    <div class="grid-params" style="grid-template-columns: repeat(2, 1fr);">
-                        <input type="number" step="0.1" id="Ph_L" value="0">
-                        <input type="number" step="0.1" id="Ph_R" value="0">
-                    </div>
-                </div>
-            </div>
-            <div class="row" style="margin-top: 0.5rem;">
-                <div class="group">
-                    <label>Finger Penalties (L-Pinky to R-Pinky)</label>
-                    <div class="grid-params" style="grid-template-columns: repeat(10, 1fr);">
-                        <input type="number" step="0.1" id="Pf_L0" value="1" title="Left Pinky">
-                        <input type="number" step="0.1" id="Pf_L1" value="0.5" title="Left Ring">
-                        <input type="number" step="0.1" id="Pf_L2" value="0" title="Left Middle">
-                        <input type="number" step="0.1" id="Pf_L3" value="0" title="Left Index">
-                        <input type="number" step="0.1" id="Pf_L4" value="0" title="Left Thumb">
-                        <input type="number" step="0.1" id="Pf_R0" value="0" title="Right Thumb">
-                        <input type="number" step="0.1" id="Pf_R1" value="0" title="Right Index">
-                        <input type="number" step="0.1" id="Pf_R2" value="0" title="Right Middle">
-                        <input type="number" step="0.1" id="Pf_R3" value="0.5" title="Right Ring">
-                        <input type="number" step="0.1" id="Pf_R4" value="1" title="Right Pinky">
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
+					this.k1 = 1;
+					this.k2 = 0.367;
+					this.k3 = 0.235;
 
-        <div class="row" style="margin-top: 2rem;">
-            <div class="group">
-                <div id="uploadArea" style="border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 8px; background: var(--muted); cursor: pointer; transition: border-color 0.2s;">
-                    <label id="corpusLabel" for="corpusFile" style="cursor: pointer; margin-bottom: 0.5rem;"></label>
-                    <input type="file" id="corpusFile" accept=".txt" style="display: none;">
-                    <p id="fileNameDisplay" class="info" style="font-weight: 600; margin-bottom: 0; color: var(--primary);">No file loaded</p>
-                    <p class="info" style="margin-top: 0.5rem; font-size: 0.8rem;">Click or drag and drop a .txt file here</p>
-                </div>
-            </div>
-        </div>
+					this.w0 = 0;
+					this.wh = 1;
+					this.wr = 1.3088;
+					this.wf = 2.5948;
 
-        <div class="row">
-            <div class="group">
-                <button id="optimizeBtn" class="primary"></button>
-            </div>
-            <div class="group">
-                <button id="resetBtn" class="secondary"></button>
-            </div>
-        </div>
+					this.Ph = {
+						left: 0,
+						right: 0
+					};
+					this.Pr = [1.5, 0.5, 0, 1];
+					this.Pf = {
+						left: [1, 0.5, 0, 0, 0],
+						right: [0, 0, 0, 0.5, 1]
+					};
 
-        <div id="keyboard" class="keyboard"></div>
+					this.fh = 1;
+					this.fr = 0.3;
+					this.ff = 0.3;
+					this.path_offset = 0;
 
-        <div class="stats">
-            <div class="stat-card">
-                <div id="effortLabel" class="stat-label"></div>
-                <div id="totalEffort" class="stat-val">0.000000</div>
-            </div>
-            <div class="stat-card">
-                <div id="iterationsLabel" class="stat-label"></div>
-                <div id="iterations" class="stat-val">0</div>
-            </div>
-            <div class="stat-card">
-                <div id="tempLabel" class="stat-label"></div>
-                <div id="temperature" class="stat-val">0.000000</div>
-            </div>
-        </div>
+					this.baseEfforts = [[5, 4, 4, 4, 4, 4, 4.5, 4, 4, 4, 4, 4.5, 5.5], [2, 2, 2, 2, 2.5, 3, 2, 2, 2, 2, 2.5, 4, 6], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2], [2, 2, 2, 2, 3.5, 2, 2, 2, 2, 2]];
 
-	</div>
-	<script>
-const pathCosts = {
-  "000": 0.0,
-  "001": 0.3,
-  "002": 0.6,
-  "003": 0.9,
-  "006": 1.8,
-  "010": 0.3,
-  "011": 0.6,
-  "012": 0.9,
-  "013": 1.2,
-  "016": 2.1,
-  "020": 0.6,
-  "021": 0.9,
-  "022": 1.2,
-  "023": 1.5,
-  "026": 2.4,
-  "030": 0.9,
-  "032": 1.5,
-  "033": 1.8,
-  "036": 2.7,
-  "040": 1.2,
-  "042": 1.8,
-  "043": 2.1,
-  "046": 3.0,
-  "050": 1.5,
-  "052": 2.1,
-  "053": 2.4,
-  "056": 3.3,
-  "060": 1.8,
-  "062": 2.4,
-  "063": 2.7,
-  "066": 3.6,
-  "070": 2.1,
-  "072": 2.7,
-  "073": 3.0,
-  "076": 3.9,
-  "102": 1.6,
-  "103": 1.9,
-  "104": 2.2,
-  "112": 1.9,
-  "113": 2.2,
-  "114": 2.5,
-  "122": 2.2,
-  "123": 2.5,
-  "124": 2.8,
-  "132": 2.5,
-  "133": 2.8,
-  "134": 3.1,
-  "142": 2.8,
-  "143": 3.1,
-  "144": 3.4,
-  "152": 3.1,
-  "153": 3.4,
-  "154": 3.7,
-  "162": 3.4,
-  "163": 3.7,
-  "164": 4.0,
-  "172": 3.7,
-  "173": 4.0,
-  "174": 4.3,
-  "200": 2.0,
-  "201": 2.3,
-  "202": 2.6,
-  "203": 2.9,
-  "204": 3.2,
-  "205": 3.5,
-  "206": 3.8,
-  "210": 2.3,
-  "211": 2.6,
-  "212": 2.9,
-  "213": 3.2,
-  "214": 3.5,
-  "215": 3.8,
-  "216": 4.1,
-  "217": 4.4,
-  "220": 2.6,
-  "221": 2.9,
-  "222": 3.2,
-  "223": 3.5,
-  "224": 3.8,
-  "225": 4.1,
-  "226": 4.4,
-  "227": 4.7,
-  "230": 2.9,
-  "232": 3.5,
-  "233": 3.8,
-  "234": 4.1,
-  "235": 4.4,
-  "236": 4.7,
-  "237": 5.0,
-  "240": 3.2,
-  "242": 3.8,
-  "243": 4.1,
-  "244": 4.4,
-  "246": 5.0,
-  "247": 5.3,
-  "250": 3.5,
-  "252": 4.1,
-  "253": 4.4,
-  "254": 4.7,
-  "256": 5.3,
-  "257": 5.6,
-  "260": 3.8,
-  "262": 4.4,
-  "263": 4.7,
-  "264": 5.0,
-  "266": 5.6,
-  "267": 5.9,
-  "270": 4.1,
-  "272": 4.7,
-  "273": 5.0,
-  "274": 5.3,
-  "275": 5.6,
-  "276": 5.9,
-  "277": 6.2
-};
+					this.layouts = {
+						qwerty: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"], ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""], ["z", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]],
+						qwertz: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["q", "w", "e", "r", "t", "z", "u", "i", "o", "p", "[{", "]}", "\\|"], ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""], ["y", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]],
+						azerty: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"], ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m", "'\""], ["w", "x", "c", "v", "b", "n", ",<", ".>", "/?", ";:"]]
+					};
+					this.initialLayout = this.layouts.qwerty;
+					this.restrictSameRow = false;
 
-class Carpalx {
-    constructor() {
-        // Effort component weights
-        this.kb = 0.3555;
-        this.kp = 0.6423;
-        this.ks = 0.4268;
+					this.fingers = [[0, 0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9]];
 
-        // Triad interaction parameters
-        this.k1 = 1;
-        this.k2 = 0.367;
-        this.k3 = 0.235;
+					this.mask = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [1, 1, 1, 1, 1, 1, 1, 0, 0, 0]];
 
-        // Penalty weights
-        this.w0 = 0;
-        this.wh = 1;
-        this.wr = 1.3088;
-        this.wf = 2.5948;
+					this.initKeyboard();
+				}
 
-        // Penalties
-        this.Ph = { left: 0, right: 0 };
-        this.Pr = [1.5, 0.5, 0, 1]; // row 0, 1, 2, 3
-        this.Pf = {
-            left: [1, 0.5, 0, 0, 0], // pinky to thumb (thumb is index 4)
-            right: [0, 0, 0, 0.5, 1] // thumb to pinky (thumb is index 0)
-        };
+				initKeyboard(layoutName='qwerty') {
+					this.initialLayout = this.layouts[layoutName] || this.layouts.qwerty;
 
-        // Stroke path weights
-        this.fh = 1;
-        this.fr = 0.3;
-        this.ff = 0.3;
-        this.path_offset = 0;
+					this.mask = this.initialLayout.map(row=>row.map(keyStr=>{
+						let lc = keyStr.startsWith('\\') ? keyStr[1] : keyStr[0];
+						return /[a-zA-Z]/.test(lc) ? 1 : 0;
+					}
+					));
 
-        this.baseEfforts = [
-            [5, 4, 4, 4, 4, 4, 4.5, 4, 4, 4, 4, 4.5, 5.5],
-            [2, 2, 2, 2, 2.5, 3, 2, 2, 2, 2, 2.5, 4, 6],
-            [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2],
-            [2, 2, 2, 2, 3.5, 2, 2, 2, 2, 2]
-        ];
+					this.keys = [];
+					this.map = {};
+					for (let r = 0; r < this.initialLayout.length; r++) {
+						this.keys[r] = [];
+						for (let c = 0; c < this.initialLayout[r].length; c++) {
+							let keyStr = this.initialLayout[r][c];
+							let lc, uc;
+							if (keyStr.length === 1 && /[a-zA-Z]/.test(keyStr)) {
+								lc = keyStr.toLowerCase();
+								uc = keyStr.toUpperCase();
+							} else if (keyStr.startsWith('\\')) {
+								lc = keyStr[1];
+								uc = keyStr[2] || lc;
+							} else {
+								lc = keyStr[0];
+								uc = keyStr[1] || lc;
+							}
 
-        this.layouts = {
-            qwerty: [
-                ["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"],
-                ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"],
-                ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""],
-                ["z", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]
-            ],
-            qwertz: [
-                ["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"],
-                ["q", "w", "e", "r", "t", "z", "u", "i", "o", "p", "[{", "]}", "\\|"],
-                ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""],
-                ["y", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]
-            ],
-            azerty: [
-                ["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"],
-                ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"],
-                ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m", "'\""],
-                ["w", "x", "c", "v", "b", "n", ",<", ".>", "/?", ";:"]
-            ]
-        };
-        this.initialLayout = this.layouts.qwerty;
-        this.restrictSameRow = false;
+							let finger = this.fingers[r][c];
+							let hand = finger >= 5 ? 1 : 0;
 
-        this.fingers = [
-            [0, 0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9],
-            [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9, 9],
-            [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9],
-            [0, 1, 2, 3, 3, 6, 6, 7, 8, 9]
-        ];
+							let key = {
+								row: r,
+								col: c,
+								lc: lc,
+								uc: uc,
+								finger: finger,
+								hand: hand,
+								effort: {}
+							};
 
-        this.mask = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 0, 0, 0]
-        ];
+							this.keys[r][c] = key;
+							this.map[lc] = key;
+							this.map[uc] = key;
 
-        this.initKeyboard();
-    }
+							this.calculateKeyEffort(key);
+						}
+					}
+				}
 
-    initKeyboard(layoutName = 'qwerty') {
-        this.initialLayout = this.layouts[layoutName] || this.layouts.qwerty;
+				calculateKeyEffort(key) {
+					let r = key.row;
+					let hand = key.hand;
+					let finger = key.finger;
 
-        // Update mask to match letters in the layout
-        this.mask = this.initialLayout.map(row => row.map(keyStr => {
-            let lc = keyStr.startsWith('\\') ? keyStr[1] : keyStr[0];
-            return /[a-zA-Z]/.test(lc) ? 1 : 0;
-        }));
+					let baseEffort = this.baseEfforts[r][key.col];
+					let Ph = hand === 1 ? this.Ph.right : this.Ph.left;
+					let Pf = hand === 0 ? this.Pf.left[finger] : this.Pf.right[finger - 5];
+					let Pr = this.Pr[r] || 0;
 
-        this.keys = [];
-        this.map = {};
-        for (let r = 0; r < this.initialLayout.length; r++) {
-            this.keys[r] = [];
-            for (let c = 0; c < this.initialLayout[r].length; c++) {
-                let keyStr = this.initialLayout[r][c];
-                let lc, uc;
-                if (keyStr.length === 1 && /[a-zA-Z]/.test(keyStr)) {
-                    lc = keyStr.toLowerCase();
-                    uc = keyStr.toUpperCase();
-                } else if (keyStr.startsWith('\\')) {
-                    lc = keyStr[1];
-                    uc = keyStr[2] || lc;
-                } else {
-                    lc = keyStr[0];
-                    uc = keyStr[1] || lc;
-                }
+					let penaltyEffort = this.w0 + this.wh * Ph + this.wr * Pr + this.wf * Pf;
 
-                let finger = this.fingers[r][c];
-                let hand = finger >= 5 ? 1 : 0;
+					key.effort.base = baseEffort;
+					key.effort.penalty = penaltyEffort;
+					key.effort.total = this.kb * baseEffort + this.kp * penaltyEffort;
+				}
 
-                let key = {
-                    row: r,
-                    col: c,
-                    lc: lc,
-                    uc: uc,
-                    finger: finger,
-                    hand: hand,
-                    effort: {}
-                };
+				updateParameters(params) {
+					if (params.kb !== undefined)
+						this.kb = params.kb;
+					if (params.kp !== undefined)
+						this.kp = params.kp;
+					if (params.ks !== undefined)
+						this.ks = params.ks;
+					if (params.k1 !== undefined)
+						this.k1 = params.k1;
+					if (params.k2 !== undefined)
+						this.k2 = params.k2;
+					if (params.k3 !== undefined)
+						this.k3 = params.k3;
+					if (params.w0 !== undefined)
+						this.w0 = params.w0;
+					if (params.wh !== undefined)
+						this.wh = params.wh;
+					if (params.wr !== undefined)
+						this.wr = params.wr;
+					if (params.wf !== undefined)
+						this.wf = params.wf;
+					if (params.fh !== undefined)
+						this.fh = params.fh;
+					if (params.fr !== undefined)
+						this.fr = params.fr;
+					if (params.ff !== undefined)
+						this.ff = params.ff;
+					if (params.path_offset !== undefined)
+						this.path_offset = params.path_offset;
 
-                this.keys[r][c] = key;
-                this.map[lc] = key;
-                this.map[uc] = key;
+					if (params.Pr)
+						this.Pr = [...params.Pr];
+					if (params.Ph)
+						Object.assign(this.Ph, params.Ph);
+					if (params.Pf) {
+						if (params.Pf.left)
+							this.Pf.left = [...params.Pf.left];
+						if (params.Pf.right)
+							this.Pf.right = [...params.Pf.right];
+					}
 
-                this.calculateKeyEffort(key);
-            }
-        }
-    }
+					for (let r = 0; r < this.keys.length; r++) {
+						for (let c = 0; c < this.keys[r].length; c++) {
+							this.calculateKeyEffort(this.keys[r][c]);
+						}
+					}
+				}
 
-    calculateKeyEffort(key) {
-        let r = key.row;
-        let hand = key.hand;
-        let finger = key.finger;
+				calculateEffort(triads) {
+					let totalEffort = 0;
+					let totalCount = 0;
+					for (let triad in triads) {
+						let count = triads[triad];
+						if (triad.length !== 3)
+							continue;
+						let c1 = triad[0]
+						  , c2 = triad[1]
+						  , c3 = triad[2];
+						if (!this.map[c1] || !this.map[c2] || !this.map[c3])
+							continue;
+						let effort = this.calculateTriadEffort(triad);
+						totalEffort += effort * count;
+						totalCount += count;
+					}
+					return totalCount > 0 ? totalEffort / totalCount : 0;
+				}
 
-        let baseEffort = this.baseEfforts[r][key.col];
-        let Ph = hand === 1 ? this.Ph.right : this.Ph.left;
-        let Pf = hand === 0 ? this.Pf.left[finger] : this.Pf.right[finger - 5];
-        let Pr = this.Pr[r] || 0;
+				calculateTriadEffort(triad) {
+					let c1 = triad[0]
+					  , c2 = triad[1]
+					  , c3 = triad[2];
+					let k1 = this.map[c1]
+					  , k2 = this.map[c2]
+					  , k3 = this.map[c3];
 
-        let penaltyEffort = this.w0 + this.wh * Ph + this.wr * Pr + this.wf * Pf;
+					let be1 = k1.effort.base
+					  , be2 = k2.effort.base
+					  , be3 = k3.effort.base;
+					let pe1 = k1.effort.penalty
+					  , pe2 = k2.effort.penalty
+					  , pe3 = k3.effort.penalty;
 
-        key.effort.base = baseEffort;
-        key.effort.penalty = penaltyEffort;
-        key.effort.total = this.kb * baseEffort + this.kp * penaltyEffort;
-    }
+					let triad_effort = this.kb * this.k1 * be1 * (1 + this.k2 * be2 * (1 + this.k3 * be3)) + this.kp * this.k1 * pe1 * (1 + this.k2 * pe2 * (1 + this.k3 * pe3));
 
-    updateParameters(params) {
-        if (params.kb !== undefined) this.kb = params.kb;
-        if (params.kp !== undefined) this.kp = params.kp;
-        if (params.ks !== undefined) this.ks = params.ks;
-        if (params.k1 !== undefined) this.k1 = params.k1;
-        if (params.k2 !== undefined) this.k2 = params.k2;
-        if (params.k3 !== undefined) this.k3 = params.k3;
-        if (params.w0 !== undefined) this.w0 = params.w0;
-        if (params.wh !== undefined) this.wh = params.wh;
-        if (params.wr !== undefined) this.wr = params.wr;
-        if (params.wf !== undefined) this.wf = params.wf;
-        if (params.fh !== undefined) this.fh = params.fh;
-        if (params.fr !== undefined) this.fr = params.fr;
-        if (params.ff !== undefined) this.ff = params.ff;
-        if (params.path_offset !== undefined) this.path_offset = params.path_offset;
+					if (this.ks !== 0) {
+						let h1 = k1.hand
+						  , h2 = k2.hand
+						  , h3 = k3.hand;
+						let r1 = k1.row
+						  , r2 = k2.row
+						  , r3 = k3.row;
+						let f1 = k1.finger
+						  , f2 = k2.finger
+						  , f3 = k3.finger;
 
-        if (params.Pr) this.Pr = [...params.Pr];
-        if (params.Ph) Object.assign(this.Ph, params.Ph);
-        if (params.Pf) {
-            if (params.Pf.left) this.Pf.left = [...params.Pf.left];
-            if (params.Pf.right) this.Pf.right = [...params.Pf.right];
-        }
+						let hand_flag = 0;
+						if (h1 === h3) {
+							hand_flag = (h2 === h3) ? 2 : 1;
+						}
 
-        for (let r = 0; r < this.keys.length; r++) {
-            for (let c = 0; c < this.keys[r].length; c++) {
-                this.calculateKeyEffort(this.keys[r][c]);
-            }
-        }
-    }
+						let finger_flag = 3;
+						if (f1 > f2) {
+							if (f2 > f3)
+								finger_flag = 0;
+							else if (f2 === f3)
+								finger_flag = (c2 === c3) ? 1 : 6;
+							else if (f3 === f1)
+								finger_flag = 4;
+							else if (f1 > f3 && f3 > f2)
+								finger_flag = 2;
+							else
+								finger_flag = 3;
+						} else if (f1 < f2) {
+							if (f2 < f3)
+								finger_flag = 0;
+							else if (f2 === f3)
+								finger_flag = (c2 === c3) ? 1 : 6;
+							else if (f3 === f1)
+								finger_flag = 4;
+							else if (f1 < f3 && f3 < f2)
+								finger_flag = 2;
+							else
+								finger_flag = 3;
+						} else if (f1 === f2) {
+							if (f2 < f3 || f3 < f1)
+								finger_flag = (c1 === c2) ? 1 : 6;
+							else if (f2 === f3) {
+								if (c1 !== c2 && c2 !== c3 && c1 !== c3)
+									finger_flag = 7;
+								else
+									finger_flag = 5;
+							}
+						}
 
-    calculateEffort(triads) {
-        let totalEffort = 0;
-        let totalCount = 0;
-        for (let triad in triads) {
-            let count = triads[triad];
-            if (triad.length !== 3) continue;
-            let c1 = triad[0], c2 = triad[1], c3 = triad[2];
-            if (!this.map[c1] || !this.map[c2] || !this.map[c3]) continue;
-            let effort = this.calculateTriadEffort(triad);
-            totalEffort += effort * count;
-            totalCount += count;
-        }
-        return totalCount > 0 ? totalEffort / totalCount : 0;
-    }
+						let row_flag = 0;
+						let diffs = [{
+							abs: Math.abs(r1 - r2),
+							val: r1 - r2
+						}, {
+							abs: Math.abs(r1 - r3),
+							val: r1 - r3
+						}, {
+							abs: Math.abs(r2 - r3),
+							val: r2 - r3
+						}];
+						diffs.sort((a,b)=>(b.abs !== a.abs) ? (b.abs - a.abs) : (a.val - b.val));
+						let drmax_abs = diffs[0].abs;
+						let drmax = diffs[0].val;
 
-    calculateTriadEffort(triad) {
-        let c1 = triad[0], c2 = triad[1], c3 = triad[2];
-        let k1 = this.map[c1], k2 = this.map[c2], k3 = this.map[c3];
+						if (r1 < r2) {
+							if (r3 === r2)
+								row_flag = 1;
+							else if (r2 < r3)
+								row_flag = 4;
+							else if (drmax_abs === 1)
+								row_flag = 3;
+							else
+								row_flag = (drmax < 0) ? 7 : 5;
+						} else if (r1 > r2) {
+							if (r3 === r2)
+								row_flag = 2;
+							else if (r2 > r3)
+								row_flag = 6;
+							else if (drmax_abs === 1)
+								row_flag = 3;
+							else
+								row_flag = (drmax < 0) ? 7 : 5;
+						} else {
+							if (r2 > r3)
+								row_flag = 2;
+							else if (r2 < r3)
+								row_flag = 1;
+							else
+								row_flag = 0;
+						}
 
-        let be1 = k1.effort.base, be2 = k2.effort.base, be3 = k3.effort.base;
-        let pe1 = k1.effort.penalty, pe2 = k2.effort.penalty, pe3 = k3.effort.penalty;
+						let path_cost = pathCosts[`${hand_flag}${row_flag}${finger_flag}`];
+						if (path_cost === undefined) {
+							path_cost = this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag;
+						}
+						triad_effort += this.ks * (this.path_offset + path_cost);
+					}
 
-        let triad_effort = this.kb * this.k1 * be1 * (1 + this.k2 * be2 * (1 + this.k3 * be3)) +
-                           this.kp * this.k1 * pe1 * (1 + this.k2 * pe2 * (1 + this.k3 * pe3));
+					return triad_effort;
+				}
 
-        if (this.ks !== 0) {
-            let h1 = k1.hand, h2 = k2.hand, h3 = k3.hand;
-            let r1 = k1.row, r2 = k2.row, r3 = k3.row;
-            let f1 = k1.finger, f2 = k2.finger, f3 = k3.finger;
+				swapKeys(k1_coord, k2_coord) {
+					let r1 = k1_coord[0]
+					  , c1 = k1_coord[1];
+					let r2 = k2_coord[0]
+					  , c2 = k2_coord[1];
+					let key1 = this.keys[r1][c1];
+					let key2 = this.keys[r2][c2];
 
-            let hand_flag = 0;
-            if (h1 === h3) {
-                hand_flag = (h2 === h3) ? 2 : 1;
-            }
+					let tmpLc = key1.lc
+					  , tmpUc = key1.uc;
+					key1.lc = key2.lc;
+					key1.uc = key2.uc;
+					key2.lc = tmpLc;
+					key2.uc = tmpUc;
 
-            let finger_flag = 3;
-            if (f1 > f2) {
-                if (f2 > f3) finger_flag = 0;
-                else if (f2 === f3) finger_flag = (c2 === c3) ? 1 : 6;
-                else if (f3 === f1) finger_flag = 4;
-                else if (f1 > f3 && f3 > f2) finger_flag = 2;
-                else finger_flag = 3;
-            } else if (f1 < f2) {
-                if (f2 < f3) finger_flag = 0;
-                else if (f2 === f3) finger_flag = (c2 === c3) ? 1 : 6;
-                else if (f3 === f1) finger_flag = 4;
-                else if (f1 < f3 && f3 < f2) finger_flag = 2;
-                else finger_flag = 3;
-            } else if (f1 === f2) {
-                if (f2 < f3 || f3 < f1) finger_flag = (c1 === c2) ? 1 : 6;
-                else if (f2 === f3) {
-                    if (c1 !== c2 && c2 !== c3 && c1 !== c3) finger_flag = 7;
-                    else finger_flag = 5;
-                }
-            }
+					this.map[key1.lc] = key1;
+					this.map[key1.uc] = key1;
+					this.map[key2.lc] = key2;
+					this.map[key2.uc] = key2;
 
-            let row_flag = 0;
-            let diffs = [
-                { abs: Math.abs(r1 - r2), val: r1 - r2 },
-                { abs: Math.abs(r1 - r3), val: r1 - r3 },
-                { abs: Math.abs(r2 - r3), val: r2 - r3 }
-            ];
-            // Sort by absolute difference descending, then by original value ascending
-            diffs.sort((a, b) => (b.abs !== a.abs) ? (b.abs - a.abs) : (a.val - b.val));
-            let drmax_abs = diffs[0].abs;
-            let drmax = diffs[0].val;
+					this.calculateKeyEffort(key1);
+					this.calculateKeyEffort(key2);
+				}
 
-            if (r1 < r2) {
-                if (r3 === r2) row_flag = 1;
-                else if (r2 < r3) row_flag = 4;
-                else if (drmax_abs === 1) row_flag = 3;
-                else row_flag = (drmax < 0) ? 7 : 5;
-            } else if (r1 > r2) {
-                if (r3 === r2) row_flag = 2;
-                else if (r2 > r3) row_flag = 6;
-                else if (drmax_abs === 1) row_flag = 3;
-                else row_flag = (drmax < 0) ? 7 : 5;
-            } else {
-                if (r2 > r3) row_flag = 2;
-                else if (r2 < r3) row_flag = 1;
-                else row_flag = 0;
-            }
+				getRelocatableKeys() {
+					let list = [];
+					for (let r = 0; r < this.mask.length; r++) {
+						for (let c = 0; c < this.mask[r].length; c++) {
+							if (this.mask[r][c])
+								list.push([r, c]);
+						}
+					}
+					return list;
+				}
 
-            let path_cost = pathCosts[`${hand_flag}${row_flag}${finger_flag}`];
-            if (path_cost === undefined) {
-                path_cost = this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag;
-            }
-            triad_effort += this.ks * (this.path_offset + path_cost);
-        }
+				getTriads(text) {
+					let triads = {};
+					const lines = text.split(/\r?\n/);
+					for (let line of lines) {
+						line = line.replace(/\s/g, '').toLowerCase().replace(/[\W_0-9]/g, '');
+						if (line.length < 3)
+							continue;
+						for (let i = 0; i < line.length - 2; i++) {
+							let triad = line.substring(i, i + 3);
+							if (triad[0] === triad[1] && triad[1] === triad[2])
+								continue;
+							triads[triad] = (triads[triad] || 0) + 1;
+						}
+					}
+					return triads;
+				}
 
-        return triad_effort;
-    }
+				findBestSwap(triads) {
+					const relocatable = this.getRelocatableKeys();
+					let bestSwap = null;
+					let bestEffort = this.calculateEffort(triads);
 
-    swapKeys(k1_coord, k2_coord) {
-        let r1 = k1_coord[0], c1 = k1_coord[1];
-        let r2 = k2_coord[0], c2 = k2_coord[1];
-        let key1 = this.keys[r1][c1];
-        let key2 = this.keys[r2][c2];
+					for (let i = 0; i < relocatable.length; i++) {
+						for (let j = i + 1; j < relocatable.length; j++) {
+							const k1 = relocatable[i];
+							const k2 = relocatable[j];
 
-        let tmpLc = key1.lc, tmpUc = key1.uc;
-        key1.lc = key2.lc; key1.uc = key2.uc;
-        key2.lc = tmpLc; key2.uc = tmpUc;
+							if (this.restrictSameRow && k1[0] !== k2[0])
+								continue;
 
-        this.map[key1.lc] = key1; this.map[key1.uc] = key1;
-        this.map[key2.lc] = key2; this.map[key2.uc] = key2;
+							this.swapKeys(k1, k2);
+							const newEffort = this.calculateEffort(triads);
+							if (newEffort < bestEffort) {
+								bestEffort = newEffort;
+								bestSwap = [k1, k2];
+							}
+							this.swapKeys(k1, k2);
+						}
+					}
+					return {
+						bestSwap,
+						bestEffort
+					};
+				}
 
-        this.calculateKeyEffort(key1);
-        this.calculateKeyEffort(key2);
-    }
-
-    getRelocatableKeys() {
-        let list = [];
-        for (let r = 0; r < this.mask.length; r++) {
-            for (let c = 0; c < this.mask[r].length; c++) {
-                if (this.mask[r][c]) list.push([r, c]);
-            }
-        }
-        return list;
-    }
-
-    getTriads(text) {
-        let triads = {};
-        const lines = text.split(/\r?\n/);
-        for (let line of lines) {
-            // Match Perl English mode:
-            // 1. remove all whitespace
-            // 2. lowercase
-            // 3. remove [\W_0-9] (which leaves only a-z)
-            line = line.replace(/\s/g, '').toLowerCase().replace(/[\W_0-9]/g, '');
-            if (line.length < 3) continue;
-            for (let i = 0; i < line.length - 2; i++) {
-                let triad = line.substring(i, i + 3);
-                // Perl's english mode doesn't allow repeated triads by default (accept_repeats = no)
-                if (triad[0] === triad[1] && triad[1] === triad[2]) continue;
-                triads[triad] = (triads[triad] || 0) + 1;
-            }
-        }
-        return triads;
-    }
-
-    findBestSwap(triads) {
-        const relocatable = this.getRelocatableKeys();
-        let bestSwap = null;
-        let bestEffort = this.calculateEffort(triads);
-
-        for (let i = 0; i < relocatable.length; i++) {
-            for (let j = i + 1; j < relocatable.length; j++) {
-                const k1 = relocatable[i];
-                const k2 = relocatable[j];
-
-                if (this.restrictSameRow && k1[0] !== k2[0]) continue;
-
-                this.swapKeys(k1, k2);
-                const newEffort = this.calculateEffort(triads);
-                if (newEffort < bestEffort) {
-                    bestEffort = newEffort;
-                    bestSwap = [k1, k2];
-                }
-                this.swapKeys(k1, k2); // swap back
-            }
-        }
-        return { bestSwap, bestEffort };
-    }
-
-    copy() {
-        let newCarpalx = new Carpalx();
-        newCarpalx.restrictSameRow = this.restrictSameRow;
-        newCarpalx.updateParameters({
-            kb: this.kb, kp: this.kp, ks: this.ks,
-            k1: this.k1, k2: this.k2, k3: this.k3,
-            w0: this.w0, wh: this.wh, wr: this.wr, wf: this.wf,
-            fh: this.fh, fr: this.fr, ff: this.ff, path_offset: this.path_offset,
-            Pr: this.Pr, Ph: this.Ph, Pf: this.Pf
-        });
-        for (let r = 0; r < this.keys.length; r++) {
-            for (let c = 0; c < this.keys[r].length; c++) {
-                let key = this.keys[r][c];
-                let newKey = newCarpalx.keys[r][c];
-                newKey.lc = key.lc;
-                newKey.uc = key.uc;
-                newCarpalx.map[key.lc] = newKey;
-                newCarpalx.map[key.uc] = newKey;
-                newCarpalx.calculateKeyEffort(newKey);
-            }
-        }
-        return newCarpalx;
-    }
-}
-
-const textTranslations = {
-			en: {
-				title: 'Carpalx Keyboard Optimizer',
-				subtitle: 'Optimize your keyboard layout using simulated annealing based on typing effort models.',
-				autoTheme: 'Auto Theme',
-				lightTheme: 'Light',
-				darkTheme: 'Dark',
-                corpusLabel: 'Training Corpus (.txt)',
-                optimizeBtn: 'Start Optimization',
-                resetBtn: 'Reset Layout',
-                effortLabel: 'Typing Effort',
-                iterationsLabel: 'Iterations / Swaps',
-                tempLabel: 'Temperature',
-                optimizing: 'Stop Optimization',
-                noFileLoaded: 'No file loaded',
-                fileLoaded: 'File loaded: ',
-                optimizationParamsTitle: 'Optimization Settings',
-                penaltyParamsTitle: 'Penalty Parameters',
-                maxSwapsLabel: 'Max Swaps',
-                iterationsLimitLabel: 'Iterations',
-                optModeLabel: 'Mode',
-                resetParamsBtn: 'Reset Params',
-                baseLayoutLabel: 'Base Layout',
-                restrictSameRowLabel: 'Restrict to Same Row'
-			},
-			id: {
-				title: 'Optimasi Keyboard Carpalx',
-				subtitle: 'Optimalkan tata letak keyboard Anda menggunakan simulated annealing berdasarkan model upaya pengetikan.',
-				autoTheme: 'Tema Otomatis',
-				lightTheme: 'Terang',
-				darkTheme: 'Gelap',
-                corpusLabel: 'Korpus Pelatihan (.txt)',
-                optimizeBtn: 'Mulai Optimasi',
-                resetBtn: 'Reset Tata Letak',
-                effortLabel: 'Upaya Pengetikan',
-                iterationsLabel: 'Iterasi / Pertukaran',
-                tempLabel: 'Suhu',
-                optimizing: 'Hentikan Optimasi',
-                noFileLoaded: 'Belum ada berkas',
-                fileLoaded: 'Berkas dimuat: ',
-                optimizationParamsTitle: 'Pengaturan Optimasi',
-                penaltyParamsTitle: 'Parameter Penalti',
-                maxSwapsLabel: 'Maks Pertukaran',
-                iterationsLimitLabel: 'Iterasi',
-                optModeLabel: 'Mode',
-                resetParamsBtn: 'Reset Parameter',
-                baseLayoutLabel: 'Tata Letak Dasar',
-                restrictSameRowLabel: 'Batasi ke Baris yang Sama'
-			}
-		};
-		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
-
-		class CarpalxOptimizer {
-			constructor() {
-                this.carpalx = new Carpalx();
-                this.optimizing = false;
-                this.iteration = 0;
-                this.bestEffort = Infinity;
-                this.corpusText = '';
-
-				this.setup();
-                this.loadState();
-                this.renderKeyboard();
-                this.updateEffort();
+				copy() {
+					let newCarpalx = new Carpalx();
+					newCarpalx.restrictSameRow = this.restrictSameRow;
+					newCarpalx.updateParameters({
+						kb: this.kb,
+						kp: this.kp,
+						ks: this.ks,
+						k1: this.k1,
+						k2: this.k2,
+						k3: this.k3,
+						w0: this.w0,
+						wh: this.wh,
+						wr: this.wr,
+						wf: this.wf,
+						fh: this.fh,
+						fr: this.fr,
+						ff: this.ff,
+						path_offset: this.path_offset,
+						Pr: this.Pr,
+						Ph: this.Ph,
+						Pf: this.Pf
+					});
+					for (let r = 0; r < this.keys.length; r++) {
+						for (let c = 0; c < this.keys[r].length; c++) {
+							let key = this.keys[r][c];
+							let newKey = newCarpalx.keys[r][c];
+							newKey.lc = key.lc;
+							newKey.uc = key.uc;
+							newCarpalx.map[key.lc] = newKey;
+							newCarpalx.map[key.uc] = newKey;
+							newCarpalx.calculateKeyEffort(newKey);
+						}
+					}
+					return newCarpalx;
+				}
 			}
 
-            saveState() {
-                const state = {
-                    language: this.language,
-                    themeName: elements.theme.value,
-                    baseLayout: elements.baseLayoutSelect.value,
-                    optMode: elements.optModeSelect.value,
-                    restrictSameRow: elements.restrictSameRow.checked,
-                    maxIterations: elements.maxIterations.value,
-                    maxSwaps: elements.maxSwaps.value,
-                    mask: this.carpalx.mask,
-                    penalties: {}
-                };
-                const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3',
-                                     'w0', 'wh', 'wr', 'wf', 'fh', 'fr', 'ff', 'path_offset',
-                                     'Pr_0', 'Pr_1', 'Pr_2', 'Pr_3', 'Ph_L', 'Ph_R',
-                                     'Pf_L0', 'Pf_L1', 'Pf_L2', 'Pf_L3', 'Pf_L4', 'Pf_R0', 'Pf_R1', 'Pf_R2', 'Pf_R3', 'Pf_R4'];
-                penaltyInputs.forEach(id => {
-                    state.penalties[id] = elements[id].value;
-                });
-                localStorage.setItem('carpalx_state', JSON.stringify(state));
-            }
+			const textTranslations = {
+				en: {
+					title: 'Carpalx Keyboard Optimizer',
+					subtitle: 'Optimize your keyboard layout using simulated annealing based on typing effort models.',
+					autoTheme: 'Auto Theme',
+					lightTheme: 'Light',
+					darkTheme: 'Dark',
+					corpusLabel: 'Training Corpus (.txt)',
+					optimizeBtn: 'Start Optimization',
+					resetBtn: 'Reset Layout',
+					effortLabel: 'Typing Effort',
+					iterationsLabel: 'Iterations / Swaps',
+					tempLabel: 'Temperature',
+					optimizing: 'Stop Optimization',
+					noFileLoaded: 'No file loaded',
+					fileLoaded: 'File loaded: ',
+					optimizationParamsTitle: 'Optimization Settings',
+					penaltyParamsTitle: 'Penalty Parameters',
+					maxSwapsLabel: 'Max Swaps',
+					iterationsLimitLabel: 'Iterations',
+					optModeLabel: 'Mode',
+					resetParamsBtn: 'Reset Params',
+					baseLayoutLabel: 'Base Layout',
+					restrictSameRowLabel: 'Restrict to Same Row'
+				},
+				id: {
+					title: 'Optimasi Keyboard Carpalx',
+					subtitle: 'Optimalkan tata letak keyboard Anda menggunakan simulated annealing berdasarkan model upaya pengetikan.',
+					autoTheme: 'Tema Otomatis',
+					lightTheme: 'Terang',
+					darkTheme: 'Gelap',
+					corpusLabel: 'Korpus Pelatihan (.txt)',
+					optimizeBtn: 'Mulai Optimasi',
+					resetBtn: 'Reset Tata Letak',
+					effortLabel: 'Upaya Pengetikan',
+					iterationsLabel: 'Iterasi / Pertukaran',
+					tempLabel: 'Suhu',
+					optimizing: 'Hentikan Optimasi',
+					noFileLoaded: 'Belum ada berkas',
+					fileLoaded: 'Berkas dimuat: ',
+					optimizationParamsTitle: 'Pengaturan Optimasi',
+					penaltyParamsTitle: 'Parameter Penalti',
+					maxSwapsLabel: 'Maks Pertukaran',
+					iterationsLimitLabel: 'Iterasi',
+					optModeLabel: 'Mode',
+					resetParamsBtn: 'Reset Parameter',
+					baseLayoutLabel: 'Tata Letak Dasar',
+					restrictSameRowLabel: 'Batasi ke Baris yang Sama'
+				}
+			};
+			const elements = new Proxy({},{
+				get: (_,id)=>document.getElementById(id)
+			});
 
-            loadState() {
-                const saved = localStorage.getItem('carpalx_state');
-                if (saved) {
-                    try {
-                        const state = JSON.parse(saved);
-                        this.language = state.language || (navigator.language?.startsWith('id') ? 'id' : 'en');
-                        this.lang(this.language);
-                        this.theme(state.themeName || 'auto');
+			class Carpalx {
+				constructor() {
+					this.carpalx = new Carpalx();
+					this.optimizing = false;
+					this.iteration = 0;
+					this.bestEffort = Infinity;
+					this.corpusText = '';
 
-                        if (state.baseLayout) elements.baseLayoutSelect.value = state.baseLayout;
-                        if (state.optMode) elements.optModeSelect.value = state.optMode;
-                        if (state.restrictSameRow !== undefined) elements.restrictSameRow.checked = state.restrictSameRow;
-                        if (state.maxIterations) elements.maxIterations.value = state.maxIterations;
-                        if (state.maxSwaps) elements.maxSwaps.value = state.maxSwaps;
-                        if (state.mask) this.carpalx.mask = state.mask;
+					this.setup();
+					this.loadState();
+					requestAnimationFrame(()=>{
+						this.renderKeyboard();
+						this.updateEffort();
+					}
+					);
+				}
 
-                        if (state.penalties) {
-                            Object.keys(state.penalties).forEach(id => {
-                                if (elements[id]) elements[id].value = state.penalties[id];
-                            });
-                        }
+				saveState() {
+					const state = {
+						language: this.language,
+						themeName: elements.theme.value,
+						baseLayout: elements.baseLayoutSelect.value,
+						optMode: elements.optModeSelect.value,
+						restrictSameRow: elements.restrictSameRow.checked,
+						maxIterations: elements.maxIterations.value,
+						maxSwaps: elements.maxSwaps.value,
+						mask: this.carpalx.mask,
+						penalties: {}
+					};
+					const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3', 'w0', 'wh', 'wr', 'wf', 'fh', 'fr', 'ff', 'path_offset', 'Pr_0', 'Pr_1', 'Pr_2', 'Pr_3', 'Ph_L', 'Ph_R', 'Pf_L0', 'Pf_L1', 'Pf_L2', 'Pf_L3', 'Pf_L4', 'Pf_R0', 'Pf_R1', 'Pf_R2', 'Pf_R3', 'Pf_R4'];
+					penaltyInputs.forEach(id=>{
+						state.penalties[id] = elements[id].value;
+					}
+					);
+					localStorage.setItem('carpalx_state', JSON.stringify(state));
+				}
 
-                        this.carpalx.initKeyboard(elements.baseLayoutSelect.value);
-                        this.carpalx.restrictSameRow = elements.restrictSameRow.checked;
-                        this.updateModeUI();
-                        this.syncParameters();
-                    } catch (e) {
-                        console.error("Failed to load state", e);
-                        this.resetToDefaults();
-                    }
-                } else {
-                    this.resetToDefaults();
-                }
-            }
+				loadState() {
+					const saved = localStorage.getItem('carpalx_state');
+					if (saved) {
+						try {
+							const state = JSON.parse(saved);
+							this.language = state.language || (navigator.language?.startsWith('id') ? 'id' : 'en');
+							this.lang(this.language);
+							this.theme(state.themeName || 'auto');
 
-            resetToDefaults() {
-                this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
-                this.lang(this.language);
-                this.theme('auto');
-                this.updateModeUI();
-                this.syncParameters();
-            }
+							if (state.baseLayout)
+								elements.baseLayoutSelect.value = state.baseLayout;
+							if (state.optMode)
+								elements.optModeSelect.value = state.optMode;
+							if (state.restrictSameRow !== undefined)
+								elements.restrictSameRow.checked = state.restrictSameRow;
+							if (state.maxIterations)
+								elements.maxIterations.value = state.maxIterations;
+							if (state.maxSwaps)
+								elements.maxSwaps.value = state.maxSwaps;
+							if (state.mask)
+								this.carpalx.mask = state.mask;
 
-			setup() {
-				elements.language.onchange = event => { this.lang(event.target.value); this.saveState(); };
-				elements.theme.onchange = event => { this.theme(event.target.value); this.saveState(); };
-                elements.optimizeBtn.onclick = () => this.toggleOptimize();
-                elements.resetBtn.onclick = () => this.reset();
-                elements.resetParamsBtn.onclick = () => this.resetParams();
-                elements.optModeSelect.onchange = () => { this.updateModeUI(); this.saveState(); };
-                elements.baseLayoutSelect.onchange = () => { this.changeBaseLayout(); this.saveState(); };
-                elements.restrictSameRow.onchange = () => {
-                    this.carpalx.restrictSameRow = elements.restrictSameRow.checked;
-                    this.saveState();
-                };
-                elements.maxIterations.oninput = () => this.saveState();
-                elements.maxSwaps.oninput = () => this.saveState();
-                elements.corpusFile.onchange = e => this.loadFile(e);
-                elements.uploadArea.onclick = () => elements.corpusFile.click();
-                elements.uploadArea.ondragover = e => { e.preventDefault(); elements.uploadArea.style.borderColor = 'var(--primary)'; };
-                elements.uploadArea.ondragleave = () => { elements.uploadArea.style.borderColor = 'var(--border)'; };
-                elements.uploadArea.ondrop = e => {
-                    e.preventDefault();
-                    elements.uploadArea.style.borderColor = 'var(--border)';
-                    if (e.dataTransfer.files.length) {
-                        elements.corpusFile.files = e.dataTransfer.files;
-                        this.loadFile({ target: elements.corpusFile });
-                    }
-                };
+							if (state.penalties) {
+								Object.keys(state.penalties).forEach(id=>{
+									if (elements[id])
+										elements[id].value = state.penalties[id];
+								}
+								);
+							}
 
-                document.querySelectorAll('.panel-header').forEach(header => {
-                    header.onclick = () => {
-                        header.classList.toggle('collapsed');
-                        header.nextElementSibling.classList.toggle('collapsed');
-                    };
-                });
+							this.carpalx.initKeyboard(elements.baseLayoutSelect.value);
+							this.carpalx.restrictSameRow = elements.restrictSameRow.checked;
+							this.updateModeUI();
+							this.syncParameters();
+						} catch (e) {
+							console.error("Failed to load state", e);
+							this.resetToDefaults();
+						}
+					} else {
+						this.resetToDefaults();
+					}
+				}
 
-                const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3',
-                                     'w0', 'wh', 'wr', 'wf', 'fh', 'fr', 'ff', 'path_offset',
-                                     'Pr_0', 'Pr_1', 'Pr_2', 'Pr_3', 'Ph_L', 'Ph_R',
-                                     'Pf_L0', 'Pf_L1', 'Pf_L2', 'Pf_L3', 'Pf_L4', 'Pf_R0', 'Pf_R1', 'Pf_R2', 'Pf_R3', 'Pf_R4'];
-                penaltyInputs.forEach(id => {
-                    elements[id].oninput = () => { this.syncParameters(); this.saveState(); };
-                });
+				resetToDefaults() {
+					this.language = navigator.language?.startsWith('id') ? 'id' : 'en';
+					this.lang(this.language);
+					this.theme('auto');
+					this.updateModeUI();
+					this.syncParameters();
+				}
+
+				setup() {
+					elements.language.onchange = event=>{
+						this.lang(event.target.value);
+						this.saveState();
+					}
+					;
+					elements.theme.onchange = event=>{
+						this.theme(event.target.value);
+						this.saveState();
+					}
+					;
+					elements.optimizeBtn.onclick = ()=>this.toggleOptimize();
+					elements.resetBtn.onclick = ()=>this.reset();
+					elements.resetParamsBtn.onclick = ()=>this.resetParams();
+					elements.optModeSelect.onchange = ()=>{
+						this.updateModeUI();
+						this.saveState();
+					}
+					;
+					elements.baseLayoutSelect.onchange = ()=>{
+						this.changeBaseLayout();
+						this.saveState();
+					}
+					;
+					elements.restrictSameRow.onchange = ()=>{
+						this.carpalx.restrictSameRow = elements.restrictSameRow.checked;
+						this.saveState();
+					}
+					;
+					elements.maxIterations.oninput = ()=>this.saveState();
+					elements.maxSwaps.oninput = ()=>this.saveState();
+					elements.corpusFile.onchange = e=>this.loadFile(e);
+					elements.uploadArea.onclick = ()=>elements.corpusFile.click();
+					elements.uploadArea.ondragover = e=>{
+						e.preventDefault();
+						elements.uploadArea.style.borderColor = 'var(--primary)';
+					}
+					;
+					elements.uploadArea.ondragleave = ()=>{
+						elements.uploadArea.style.borderColor = 'var(--border)';
+					}
+					;
+					elements.uploadArea.ondrop = e=>{
+						e.preventDefault();
+						elements.uploadArea.style.borderColor = 'var(--border)';
+						if (e.dataTransfer.files.length) {
+							elements.corpusFile.files = e.dataTransfer.files;
+							this.loadFile({
+								target: elements.corpusFile
+							});
+						}
+					}
+					;
+
+					document.querySelectorAll('.panel-header').forEach(header=>{
+						header.onclick = ()=>{
+							header.classList.toggle('collapsed');
+							header.nextElementSibling.classList.toggle('collapsed');
+						}
+						;
+					}
+					);
+
+					const penaltyInputs = ['kb', 'kp', 'ks', 'k1', 'k2', 'k3', 'w0', 'wh', 'wr', 'wf', 'fh', 'fr', 'ff', 'path_offset', 'Pr_0', 'Pr_1', 'Pr_2', 'Pr_3', 'Ph_L', 'Ph_R', 'Pf_L0', 'Pf_L1', 'Pf_L2', 'Pf_L3', 'Pf_L4', 'Pf_R0', 'Pf_R1', 'Pf_R2', 'Pf_R3', 'Pf_R4'];
+					penaltyInputs.forEach(id=>{
+						elements[id].oninput = ()=>{
+							this.syncParameters();
+							this.saveState();
+						}
+						;
+					}
+					);
+
+					if (window.ResizeObserver) {
+						this._resizeObserver = new ResizeObserver(()=>{
+							clearTimeout(this._resizeTimer);
+							this._resizeTimer = setTimeout(()=>this.renderKeyboard(), 50);
+						}
+						);
+						this._resizeObserver.observe(elements.keyboard.parentElement);
+					} else {
+						window.addEventListener('resize', ()=>{
+							clearTimeout(this._resizeTimer);
+							this._resizeTimer = setTimeout(()=>this.renderKeyboard(), 100);
+						}
+						);
+					}
+				}
+
+				syncParameters() {
+					const params = {
+						kb: parseFloat(elements.kb.value),
+						kp: parseFloat(elements.kp.value),
+						ks: parseFloat(elements.ks.value),
+						k1: parseFloat(elements.k1.value),
+						k2: parseFloat(elements.k2.value),
+						k3: parseFloat(elements.k3.value),
+						w0: parseFloat(elements.w0.value),
+						wh: parseFloat(elements.wh.value),
+						wr: parseFloat(elements.wr.value),
+						wf: parseFloat(elements.wf.value),
+						fh: parseFloat(elements.fh.value),
+						fr: parseFloat(elements.fr.value),
+						ff: parseFloat(elements.ff.value),
+						path_offset: parseFloat(elements.path_offset.value),
+						Pr: [parseFloat(elements.Pr_0.value), parseFloat(elements.Pr_1.value), parseFloat(elements.Pr_2.value), parseFloat(elements.Pr_3.value)],
+						Ph: {
+							left: parseFloat(elements.Ph_L.value),
+							right: parseFloat(elements.Ph_R.value)
+						},
+						Pf: {
+							left: [parseFloat(elements.Pf_L0.value), parseFloat(elements.Pf_L1.value), parseFloat(elements.Pf_L2.value), parseFloat(elements.Pf_L3.value), parseFloat(elements.Pf_L4.value)],
+							right: [parseFloat(elements.Pf_R0.value), parseFloat(elements.Pf_R1.value), parseFloat(elements.Pf_R2.value), parseFloat(elements.Pf_R3.value), parseFloat(elements.Pf_R4.value)]
+						}
+					};
+					this.carpalx.updateParameters(params);
+					this.updateEffort();
+				}
+
+				updateModeUI() {
+					if (elements.optModeSelect.value === 'full') {
+						elements.fullParams.classList.remove('hidden');
+						elements.partialParams.classList.add('hidden');
+					} else {
+						elements.fullParams.classList.add('hidden');
+						elements.partialParams.classList.remove('hidden');
+					}
+				}
+
+				changeBaseLayout() {
+					const layout = elements.baseLayoutSelect.value;
+					this.carpalx.initKeyboard(layout);
+					this.syncParameters();
+					this.renderKeyboard();
+					this.updateEffort();
+				}
+
+				async loadFile(event) {
+					const file = event.target.files[0];
+					if (!file)
+						return;
+					this.currentFileName = file.name;
+					this.corpusText = await file.text();
+					this.updateFileNameDisplay();
+					this.updateEffort();
+				}
+
+				string(key) {
+					return textTranslations[this.language]?.[key] ?? key;
+				}
+				format(value, options={}) {
+					return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US', options);
+				}
+
+				theme(themeName) {
+					document.documentElement.className = themeName === 'auto' ? '' : themeName;
+					elements.theme.value = themeName;
+				}
+
+				lang(language) {
+					this.language = elements.language.value = document.documentElement.lang = language;
+					Object.keys(textTranslations.en).forEach(key=>{
+						if (elements[key])
+							elements[key].textContent = this.string(key);
+					}
+					);
+					[...elements.theme.options].forEach(option=>option.textContent = this.string(option.value + 'Theme'));
+					elements.optimizeBtn.textContent = this.string(this.optimizing ? 'optimizing' : 'optimizeBtn');
+					this.updateFileNameDisplay();
+				}
+
+				updateFileNameDisplay() {
+					if (this.corpusText) {
+						elements.fileNameDisplay.textContent = this.string('fileLoaded') + (this.currentFileName || '');
+					} else {
+						elements.fileNameDisplay.textContent = this.string('noFileLoaded');
+					}
+				}
+
+				_computeKeySize() {
+					const kb = elements.keyboard;
+					const w = kb.clientWidth || (kb.parentElement ? kb.parentElement.clientWidth - 64 : 0);
+					if (w <= 0)
+						return {
+							keySize: 45,
+							gap: 4
+						};
+
+					const gap = w < 380 ? 2 : 4;
+					const keySize = Math.max(20, Math.floor((w - 13 * gap) / 14));
+					return {
+						keySize,
+						gap
+					};
+				}
+
+				renderKeyboard() {
+					const kb = elements.keyboard;
+					const {keySize, gap} = this._computeKeySize();
+
+					kb.style.setProperty('--key-size', keySize + 'px');
+					kb.style.setProperty('--kg', gap + 'px');
+
+					kb.innerHTML = '';
+
+					const staggerUnits = [0, 1, 1, 1];
+
+					this.carpalx.keys.forEach((row,r)=>{
+						const rowEl = document.createElement('div');
+						rowEl.className = 'kb-row';
+						if (staggerUnits[r]) {
+							rowEl.style.marginLeft = `calc(${staggerUnits[r]} * (var(--key-size) + var(--kg)))`;
+						}
+
+						row.forEach((key,c)=>{
+							const keyEl = document.createElement('div');
+							const isRelocatable = this.carpalx.mask[r][c];
+							keyEl.className = 'key' + (isRelocatable ? ' relocatable' : '');
+							keyEl.innerHTML = `<span class="uc">${key.uc}</span>` + `<span class="lc">${key.lc}</span>`;
+							keyEl.onclick = (e)=>{
+								e.preventDefault();
+								e.stopPropagation();
+								this.carpalx.mask[r][c] = this.carpalx.mask[r][c] ? 0 : 1;
+								this.renderKeyboard();
+								this.saveState();
+							}
+							;
+							rowEl.appendChild(keyEl);
+						}
+						);
+
+						kb.appendChild(rowEl);
+					}
+					);
+				}
+
+				updateEffort() {
+					if (!this.corpusText) {
+						elements.totalEffort.textContent = '0.000000';
+						return 0;
+					}
+					const triads = this.carpalx.getTriads(this.corpusText);
+					const effort = this.carpalx.calculateEffort(triads);
+					elements.totalEffort.textContent = effort.toFixed(6);
+					return effort;
+				}
+
+				async toggleOptimize() {
+					if (this.optimizing) {
+						this.optimizing = false;
+						elements.optimizeBtn.textContent = this.string('optimizeBtn');
+						return;
+					}
+
+					if (!this.corpusText)
+						return;
+					const triads = this.carpalx.getTriads(this.corpusText);
+
+					this.optimizing = true;
+					elements.optimizeBtn.textContent = this.string('optimizing');
+
+					if (elements.optModeSelect.value === 'partial') {
+						await this.runPartialOptimization(triads);
+					} else {
+						await this.runFullOptimization(triads);
+					}
+
+					this.optimizing = false;
+					elements.optimizeBtn.textContent = this.string('optimizeBtn');
+					this.renderKeyboard();
+				}
+
+				async runPartialOptimization(triads) {
+					const maxSwaps = parseInt(elements.maxSwaps.value) || 10;
+					let currentEffort = this.carpalx.calculateEffort(triads);
+					this.bestEffort = currentEffort;
+					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
+						lc: k.lc,
+						uc: k.uc
+					})));
+					elements.temperature.textContent = 'N/A';
+
+					for (let i = 1; i <= maxSwaps && this.optimizing; i++) {
+						const result = this.carpalx.findBestSwap(triads);
+						if (result.bestSwap) {
+							this.carpalx.swapKeys(result.bestSwap[0], result.bestSwap[1]);
+							currentEffort = result.bestEffort;
+							if (currentEffort < this.bestEffort) {
+								this.bestEffort = currentEffort;
+								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
+									lc: k.lc,
+									uc: k.uc
+								})));
+							}
+							elements.iterations.textContent = i;
+							elements.totalEffort.textContent = currentEffort.toFixed(6);
+							this.renderKeyboard();
+							await new Promise(r=>setTimeout(r, 100));
+						} else {
+							break;
+						}
+					}
+
+					this.carpalx.keys.forEach((row,r)=>{
+						row.forEach((key,c)=>{
+							key.lc = bestLayout[r][c].lc;
+							key.uc = bestLayout[r][c].uc;
+							this.carpalx.map[key.lc] = key;
+							this.carpalx.map[key.uc] = key;
+							this.carpalx.calculateKeyEffort(key);
+						}
+						);
+					}
+					);
+					this.renderKeyboard();
+					this.updateEffort();
+					this.saveState();
+				}
+
+				async runFullOptimization(triads) {
+					const maxIterations = parseInt(elements.maxIterations.value) || 5000;
+					const t0 = 10;
+					const k = 10;
+					const p0 = 1;
+					const relocatable = this.carpalx.getRelocatableKeys();
+					if (relocatable.length < 2)
+						return;
+
+					let currentEffort = this.carpalx.calculateEffort(triads);
+					this.bestEffort = currentEffort;
+					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
+						lc: k.lc,
+						uc: k.uc
+					})));
+
+					for (let i = 1; i <= maxIterations && this.optimizing; i++) {
+						const k1_idx = Math.floor(Math.random() * relocatable.length);
+						const k1 = relocatable[k1_idx];
+						let k2;
+
+						if (this.carpalx.restrictSameRow) {
+							const sameRowKeys = relocatable.filter(rk=>rk[0] === k1[0] && (rk[0] !== k1[0] || rk[1] !== k1[1]));
+							if (sameRowKeys.length === 0)
+								continue;
+							k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
+						} else {
+							let k2_idx = Math.floor(Math.random() * relocatable.length);
+							while (k1_idx === k2_idx)
+								k2_idx = Math.floor(Math.random() * relocatable.length);
+							k2 = relocatable[k2_idx];
+						}
+
+						this.carpalx.swapKeys(k1, k2);
+						const newEffort = this.carpalx.calculateEffort(triads);
+						const deffort = newEffort - currentEffort;
+						const t = t0 * Math.exp(-i * k / maxIterations);
+
+						let accept = false;
+						if (deffort < 0) {
+							accept = true;
+						} else {
+							const p = p0 * Math.exp(-deffort / t);
+							if (Math.random() < p)
+								accept = true;
+						}
+
+						if (accept) {
+							currentEffort = newEffort;
+							if (currentEffort < this.bestEffort) {
+								this.bestEffort = currentEffort;
+								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
+									lc: k.lc,
+									uc: k.uc
+								})));
+								this.renderKeyboard();
+							}
+						} else {
+							this.carpalx.swapKeys(k1, k2);
+						}
+
+						if (i % 20 === 0) {
+							elements.iterations.textContent = i;
+							elements.temperature.textContent = t.toFixed(6);
+							elements.totalEffort.textContent = currentEffort.toFixed(6);
+							await new Promise(r=>setTimeout(r, 0));
+						}
+					}
+
+					this.carpalx.keys.forEach((row,r)=>{
+						row.forEach((key,c)=>{
+							key.lc = bestLayout[r][c].lc;
+							key.uc = bestLayout[r][c].uc;
+							this.carpalx.map[key.lc] = key;
+							this.carpalx.map[key.uc] = key;
+							this.carpalx.calculateKeyEffort(key);
+						}
+						);
+					}
+					);
+					this.renderKeyboard();
+					this.updateEffort();
+					this.saveState();
+				}
+
+				resetParams() {
+					elements.kb.value = 0.3555;
+					elements.kp.value = 0.6423;
+					elements.ks.value = 0.4268;
+					elements.k1.value = 1;
+					elements.k2.value = 0.367;
+					elements.k3.value = 0.235;
+					elements.w0.value = 0;
+					elements.wh.value = 1;
+					elements.wr.value = 1.3088;
+					elements.wf.value = 2.5948;
+					elements.fh.value = 1;
+					elements.fr.value = 0.3;
+					elements.ff.value = 0.3;
+					elements.path_offset.value = 0;
+					elements.Pr_0.value = 1.5;
+					elements.Pr_1.value = 0.5;
+					elements.Pr_2.value = 0;
+					elements.Pr_3.value = 1;
+					elements.Ph_L.value = 0;
+					elements.Ph_R.value = 0;
+					elements.Pf_L0.value = 1;
+					elements.Pf_L1.value = 0.5;
+					elements.Pf_L2.value = 0;
+					elements.Pf_L3.value = 0;
+					elements.Pf_L4.value = 0;
+					elements.Pf_R0.value = 0;
+					elements.Pf_R1.value = 0;
+					elements.Pf_R2.value = 0;
+					elements.Pf_R3.value = 0.5;
+					elements.Pf_R4.value = 1;
+					this.syncParameters();
+					this.saveState();
+				}
+
+				reset() {
+					this.optimizing = false;
+					const layout = elements.baseLayoutSelect.value;
+					this.carpalx.initKeyboard(layout);
+					this.renderKeyboard();
+					this.updateEffort();
+					elements.iterations.textContent = '0';
+					elements.temperature.textContent = '0.000000';
+					this.saveState();
+				}
 			}
-
-            syncParameters() {
-                const params = {
-                    kb: parseFloat(elements.kb.value),
-                    kp: parseFloat(elements.kp.value),
-                    ks: parseFloat(elements.ks.value),
-                    k1: parseFloat(elements.k1.value),
-                    k2: parseFloat(elements.k2.value),
-                    k3: parseFloat(elements.k3.value),
-                    w0: parseFloat(elements.w0.value),
-                    wh: parseFloat(elements.wh.value),
-                    wr: parseFloat(elements.wr.value),
-                    wf: parseFloat(elements.wf.value),
-                    fh: parseFloat(elements.fh.value),
-                    fr: parseFloat(elements.fr.value),
-                    ff: parseFloat(elements.ff.value),
-                    path_offset: parseFloat(elements.path_offset.value),
-                    Pr: [
-                        parseFloat(elements.Pr_0.value),
-                        parseFloat(elements.Pr_1.value),
-                        parseFloat(elements.Pr_2.value),
-                        parseFloat(elements.Pr_3.value)
-                    ],
-                    Ph: {
-                        left: parseFloat(elements.Ph_L.value),
-                        right: parseFloat(elements.Ph_R.value)
-                    },
-                    Pf: {
-                        left: [
-                            parseFloat(elements.Pf_L0.value),
-                            parseFloat(elements.Pf_L1.value),
-                            parseFloat(elements.Pf_L2.value),
-                            parseFloat(elements.Pf_L3.value),
-                            parseFloat(elements.Pf_L4.value)
-                        ],
-                        right: [
-                            parseFloat(elements.Pf_R0.value),
-                            parseFloat(elements.Pf_R1.value),
-                            parseFloat(elements.Pf_R2.value),
-                            parseFloat(elements.Pf_R3.value),
-                            parseFloat(elements.Pf_R4.value)
-                        ]
-                    }
-                };
-                this.carpalx.updateParameters(params);
-                this.updateEffort();
-            }
-
-            updateModeUI() {
-                if (elements.optModeSelect.value === 'full') {
-                    elements.fullParams.classList.remove('hidden');
-                    elements.partialParams.classList.add('hidden');
-                } else {
-                    elements.fullParams.classList.add('hidden');
-                    elements.partialParams.classList.remove('hidden');
-                }
-            }
-
-            changeBaseLayout() {
-                const layout = elements.baseLayoutSelect.value;
-                this.carpalx.initKeyboard(layout);
-                this.syncParameters(); // Re-apply current params to new layout
-                this.renderKeyboard();
-                this.updateEffort();
-            }
-
-            async loadFile(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                this.currentFileName = file.name;
-                this.corpusText = await file.text();
-                this.updateFileNameDisplay();
-                this.updateEffort();
-            }
-
-			string(key) { return textTranslations[this.language]?.[key] ?? key; }
-			format(value, options = {}) { return value.toLocaleString(this.language === 'id' ? 'id-ID' : 'en-US', options); }
-
-			theme(themeName) {
-				document.documentElement.className = themeName === 'auto' ? '' : themeName;
-				elements.theme.value = themeName;
-			}
-
-			lang(language) {
-				this.language = elements.language.value = document.documentElement.lang = language;
-				Object.keys(textTranslations.en).forEach(key => { if (elements[key]) elements[key].textContent = this.string(key); });
-				[...elements.theme.options].forEach(option => option.textContent = this.string(option.value + 'Theme'));
-                elements.optimizeBtn.textContent = this.string(this.optimizing ? 'optimizing' : 'optimizeBtn');
-                this.updateFileNameDisplay();
-			}
-
-            updateFileNameDisplay() {
-                if (this.corpusText) {
-                    elements.fileNameDisplay.textContent = this.string('fileLoaded') + (this.currentFileName || '');
-                } else {
-                    elements.fileNameDisplay.textContent = this.string('noFileLoaded');
-                }
-            }
-
-            renderKeyboard() {
-                elements.keyboard.innerHTML = '';
-                this.carpalx.keys.forEach((row, r) => {
-                    const rowEl = document.createElement('div');
-                    rowEl.className = 'kb-row';
-                // User-requested staggering to align 1, q, a, z (gamers' WASD cluster)
-                const offsets = [0, 132, 66, 66];
-                    rowEl.style.paddingLeft = offsets[r] + 'px';
-
-                    row.forEach((key, c) => {
-                        const keyEl = document.createElement('div');
-                        const isRelocatable = this.carpalx.mask[r][c];
-                        keyEl.className = 'key' + (isRelocatable ? ' relocatable' : '');
-                        keyEl.innerHTML = `<span class="uc">${key.uc}</span><span class="lc">${key.lc}</span>`;
-                        keyEl.onclick = (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            this.carpalx.mask[r][c] = this.carpalx.mask[r][c] ? 0 : 1;
-                            this.renderKeyboard();
-                            this.saveState();
-                        };
-                        rowEl.appendChild(keyEl);
-                    });
-                    elements.keyboard.appendChild(rowEl);
-                });
-            }
-
-            updateEffort() {
-                if (!this.corpusText) {
-                    elements.totalEffort.textContent = '0.000000';
-                    return 0;
-                }
-                const triads = this.carpalx.getTriads(this.corpusText);
-                const effort = this.carpalx.calculateEffort(triads);
-                elements.totalEffort.textContent = effort.toFixed(6);
-                return effort;
-            }
-
-            async toggleOptimize() {
-                if (this.optimizing) {
-                    this.optimizing = false;
-                    elements.optimizeBtn.textContent = this.string('optimizeBtn');
-                    return;
-                }
-
-                if (!this.corpusText) return;
-                const triads = this.carpalx.getTriads(this.corpusText);
-
-                this.optimizing = true;
-                elements.optimizeBtn.textContent = this.string('optimizing');
-
-                if (elements.optModeSelect.value === 'partial') {
-                    await this.runPartialOptimization(triads);
-                } else {
-                    await this.runFullOptimization(triads);
-                }
-
-                this.optimizing = false;
-                elements.optimizeBtn.textContent = this.string('optimizeBtn');
-                this.renderKeyboard();
-            }
-
-            async runPartialOptimization(triads) {
-                const maxSwaps = parseInt(elements.maxSwaps.value) || 10;
-                let currentEffort = this.carpalx.calculateEffort(triads);
-                this.bestEffort = currentEffort;
-                let bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
-                elements.temperature.textContent = 'N/A';
-
-                for (let i = 1; i <= maxSwaps && this.optimizing; i++) {
-                    const result = this.carpalx.findBestSwap(triads);
-                    if (result.bestSwap) {
-                        this.carpalx.swapKeys(result.bestSwap[0], result.bestSwap[1]);
-                        currentEffort = result.bestEffort;
-                        if (currentEffort < this.bestEffort) {
-                            this.bestEffort = currentEffort;
-                            bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
-                        }
-                        elements.iterations.textContent = i;
-                        elements.totalEffort.textContent = currentEffort.toFixed(6);
-                        this.renderKeyboard();
-                        await new Promise(r => setTimeout(r, 100));
-                    } else {
-                        break;
-                    }
-                }
-
-                // Restore best layout (though for greedy swap it usually is the last one)
-                this.carpalx.keys.forEach((row, r) => {
-                    row.forEach((key, c) => {
-                        key.lc = bestLayout[r][c].lc;
-                        key.uc = bestLayout[r][c].uc;
-                        this.carpalx.map[key.lc] = key;
-                        this.carpalx.map[key.uc] = key;
-                        this.carpalx.calculateKeyEffort(key);
-                    });
-                });
-                this.renderKeyboard();
-                this.updateEffort();
-                this.saveState();
-            }
-
-            async runFullOptimization(triads) {
-                const maxIterations = parseInt(elements.maxIterations.value) || 5000;
-                const t0 = 10;
-                const k = 10;
-                const p0 = 1;
-                const relocatable = this.carpalx.getRelocatableKeys();
-                if (relocatable.length < 2) return;
-
-                let currentEffort = this.carpalx.calculateEffort(triads);
-                this.bestEffort = currentEffort;
-                let bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
-
-                for (let i = 1; i <= maxIterations && this.optimizing; i++) {
-                    const k1_idx = Math.floor(Math.random() * relocatable.length);
-                    const k1 = relocatable[k1_idx];
-                    let k2;
-
-                    if (this.carpalx.restrictSameRow) {
-                        const sameRowKeys = relocatable.filter(rk => rk[0] === k1[0] && (rk[0] !== k1[0] || rk[1] !== k1[1]));
-                        if (sameRowKeys.length === 0) continue;
-                        k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
-                    } else {
-                        let k2_idx = Math.floor(Math.random() * relocatable.length);
-                        while (k1_idx === k2_idx) k2_idx = Math.floor(Math.random() * relocatable.length);
-                        k2 = relocatable[k2_idx];
-                    }
-
-                    this.carpalx.swapKeys(k1, k2);
-                    const newEffort = this.carpalx.calculateEffort(triads);
-                    const deffort = newEffort - currentEffort;
-                    const t = t0 * Math.exp(-i * k / maxIterations);
-
-                    let accept = false;
-                    if (deffort < 0) {
-                        accept = true;
-                    } else {
-                        const p = p0 * Math.exp(-deffort / t);
-                        if (Math.random() < p) accept = true;
-                    }
-
-                    if (accept) {
-                        currentEffort = newEffort;
-                        if (currentEffort < this.bestEffort) {
-                            this.bestEffort = currentEffort;
-                            bestLayout = this.carpalx.keys.map(row => row.map(k => ({ lc: k.lc, uc: k.uc })));
-                            this.renderKeyboard();
-                        }
-                    } else {
-                        this.carpalx.swapKeys(k1, k2);
-                    }
-
-                    if (i % 20 === 0) {
-                        elements.iterations.textContent = i;
-                        elements.temperature.textContent = t.toFixed(6);
-                        elements.totalEffort.textContent = currentEffort.toFixed(6);
-                        await new Promise(r => setTimeout(r, 0));
-                    }
-                }
-
-                // Restore best layout
-                this.carpalx.keys.forEach((row, r) => {
-                    row.forEach((key, c) => {
-                        key.lc = bestLayout[r][c].lc;
-                        key.uc = bestLayout[r][c].uc;
-                        this.carpalx.map[key.lc] = key;
-                        this.carpalx.map[key.uc] = key;
-                        this.carpalx.calculateKeyEffort(key);
-                    });
-                });
-                this.renderKeyboard();
-                this.updateEffort();
-                this.saveState();
-            }
-
-            resetParams() {
-                elements.kb.value = 0.3555;
-                elements.kp.value = 0.6423;
-                elements.ks.value = 0.4268;
-                elements.k1.value = 1;
-                elements.k2.value = 0.367;
-                elements.k3.value = 0.235;
-                elements.w0.value = 0;
-                elements.wh.value = 1;
-                elements.wr.value = 1.3088;
-                elements.wf.value = 2.5948;
-                elements.fh.value = 1;
-                elements.fr.value = 0.3;
-                elements.ff.value = 0.3;
-                elements.path_offset.value = 0;
-                elements.Pr_0.value = 1.5;
-                elements.Pr_1.value = 0.5;
-                elements.Pr_2.value = 0;
-                elements.Pr_3.value = 1;
-                elements.Ph_L.value = 0;
-                elements.Ph_R.value = 0;
-                elements.Pf_L0.value = 1;
-                elements.Pf_L1.value = 0.5;
-                elements.Pf_L2.value = 0;
-                elements.Pf_L3.value = 0;
-                elements.Pf_L4.value = 0;
-                elements.Pf_R0.value = 0;
-                elements.Pf_R1.value = 0;
-                elements.Pf_R2.value = 0;
-                elements.Pf_R3.value = 0.5;
-                elements.Pf_R4.value = 1;
-                this.syncParameters();
-                this.saveState();
-            }
-
-            reset() {
-                this.optimizing = false;
-                const layout = elements.baseLayoutSelect.value;
-                this.carpalx.initKeyboard(layout);
-                this.renderKeyboard();
-                this.updateEffort();
-                elements.iterations.textContent = '0';
-                elements.temperature.textContent = '0.000000';
-                this.saveState();
-            }
-		}
-		new CarpalxOptimizer();
-	</script>
-</body>
+			new Carpalx();
+		</script>
+	</body>
 </html>
