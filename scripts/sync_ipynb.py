@@ -429,8 +429,12 @@ def update_ipynb(filepath):
         if cell['cell_type'] == 'code' and any('class Carpalx:' in l for l in cell['source']):
             new_run = []
             skip_old_run = False
+            current_class = None
             for line in cell['source']:
-                if 'def run(self):' in line:
+                if line.startswith('class '):
+                    current_class = line.split('(')[0].split(':')[0].strip().split()[-1]
+
+                if 'def run(self):' in line and current_class == 'Carpalx':
                     new_run.append(line)
                     new_run.append("        print(f\"Loading keyboard from {self.config['keyboard_input']}\")\n")
                     new_run.append("        self.keyboard = Keyboard(self.config['keyboard_input'], self.config)\n")
@@ -442,7 +446,7 @@ def update_ipynb(filepath):
                     new_run.append("        self.keyboard = optimizer.run()\n")
                     new_run.append("        self.keyboard.plot(\"Optimized Keyboard\")\n")
                     skip_old_run = True
-                elif skip_old_run and line.startswith('    def '):
+                elif skip_old_run and (line.startswith('    def ') or line.startswith('class ')):
                     skip_old_run = False
                     new_run.append(line)
                 elif not skip_old_run:
