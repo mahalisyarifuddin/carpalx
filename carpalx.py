@@ -234,6 +234,10 @@ class Carpalx:
                     print(f"Swap {i}: Swapped {self.keyboard.keys[best_swap[0][0]][best_swap[0][1]]['lc']} and {self.keyboard.keys[best_swap[1][0]][best_swap[1][1]]['lc']}, Effort: {best_effort:.4f}")
                 else:
                     break
+        elif mode == 'lahc':
+            print("Optimizing keyboard (Late Acceptance Hill Climbing)...")
+            optimizer = LateAcceptanceHillClimbing(self.keyboard, self.triads, self.config)
+            self.keyboard = optimizer.run()
         else:
             print("Optimizing keyboard (Full Simulated Annealing)...")
             optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
@@ -348,37 +352,49 @@ class Keyboard:
     def calculate_effort(self, triads):
         total_effort = 0
         total_triads = 0
-        k_param = self.config['effort_model']['k_param']
-        k1 = float(k_param['k1'])
-        k2 = float(k_param['k2'])
-        k3 = float(k_param['k3'])
-        kb = float(k_param['kb'])
-        kp = float(k_param['kp'])
-        ks = float(k_param['ks'])
-        path_cost_conf = self.config['effort_model'].get('path_cost', {})
-
         for triad, freq in triads.items():
             if len(triad) != 3: continue
-            c1, c2, c3 = triad
-            if c1 not in self.map or c2 not in self.map or c3 not in self.map: continue
-            k1_obj = self.map[c1]
-            k2_obj = self.map[c2]
-            k3_obj = self.map[c3]
-            be1 = k1_obj['effort']['base']
-            be2 = k2_obj['effort']['base']
-            be3 = k3_obj['effort']['base']
-            pe1 = k1_obj['effort']['penalty']
-            pe2 = k2_obj['effort']['penalty']
-            pe3 = k3_obj['effort']['penalty']
-            term_base = k1 * be1 * (1 + k2 * be2 * (1 + k3 * be3))
-            term_penalty = k1 * pe1 * (1 + k2 * pe2 * (1 + k3 * pe3))
-            triad_effort = kb * term_base + kp * term_penalty
-            if ks != 0:
-                path_effort = self._calculate_path_effort(k1_obj, k2_obj, k3_obj, path_cost_conf)
-                triad_effort += ks * path_effort
+            if any(c not in self.map for c in triad): continue
+            triad_effort = self.get_triad_effort(triad)
             total_effort += triad_effort * freq
             total_triads += freq
         return total_effort / total_triads if total_triads > 0 else 0
+
+    def get_triad_effort(self, triad):
+        if len(triad) != 3: return 0
+        c1, c2, c3 = triad
+        if c1 not in self.map or c2 not in self.map or c3 not in self.map: return 0
+
+        em = self.config['effort_model']
+        k_param = em['k_param']
+        k1_w = float(k_param['k1'])
+        k2_w = float(k_param['k2'])
+        k3_w = float(k_param['k3'])
+        kb = float(k_param['kb'])
+        kp = float(k_param['kp'])
+        ks = float(k_param['ks'])
+
+        k1_obj = self.map[c1]
+        k2_obj = self.map[c2]
+        k3_obj = self.map[c3]
+
+        be1 = k1_obj['effort']['base']
+        be2 = k2_obj['effort']['base']
+        be3 = k3_obj['effort']['base']
+        pe1 = k1_obj['effort']['penalty']
+        pe2 = k2_obj['effort']['penalty']
+        pe3 = k3_obj['effort']['penalty']
+
+        term_base = k1_w * be1 * (1 + k2_w * be2 * (1 + k3_w * be3))
+        term_penalty = k1_w * pe1 * (1 + k2_w * pe2 * (1 + k3_w * pe3))
+        triad_effort = kb * term_base + kp * term_penalty
+
+        if ks != 0:
+            path_cost_conf = em.get('path_cost', {})
+            path_effort = self._calculate_path_effort(k1_obj, k2_obj, k3_obj, path_cost_conf)
+            triad_effort += ks * path_effort
+
+        return triad_effort
 
     def _calculate_path_effort(self, k1, k2, k3, path_cost_conf):
         h1, h2, h3 = k1['hand'], k2['hand'], k3['hand']
@@ -404,15 +420,20 @@ class Keyboard:
             elif f2 == f3:
                 if k1['lc'] != k2['lc'] and k2['lc'] != k3['lc'] and k1['lc'] != k3['lc']: finger_flag = 7
                 else: finger_flag = 5
+
         row_flag = 0
-        diffs = [
-            (abs(r1 - r2), r1 - r2),
-            (abs(r1 - r3), r1 - r3),
-            (abs(r2 - r3), r2 - r3)
-        ]
-        # Sort by absolute difference descending, then by original value ascending
-        diffs.sort(key=lambda x: (-x[0], x[1]))
-        drmax_abs, drmax = diffs[0]
+        d12, v12 = abs(r1-r2), r1-r2
+        d13, v13 = abs(r1-r3), r1-r3
+        d23, v23 = abs(r2-r3), r2-r3
+        max_abs = d12
+        val = v12
+        if d13 > max_abs or (d13 == max_abs and v13 < val):
+            max_abs = d13
+            val = v13
+        if d23 > max_abs or (d23 == max_abs and v23 < val):
+            max_abs = d23
+            val = v23
+        drmax_abs, drmax = max_abs, val
 
         if r1 < r2:
             if r3 == r2: row_flag = 1
@@ -428,6 +449,7 @@ class Keyboard:
             if r2 > r3: row_flag = 2
             elif r2 < r3: row_flag = 1
             else: row_flag = 0
+
         path_key = f"{hand_flag}{row_flag}{finger_flag}"
         cost_str = path_cost_conf.get(path_key, 0)
         if '#' in str(cost_str): cost_str = str(cost_str).split('#')[0]
@@ -518,18 +540,56 @@ class Corpus:
         if min_freq > 0:
             self.triads = {k: v for k, v in self.triads.items() if v >= min_freq}
 
-class SimulatedAnnealing:
+class OptimizerBase:
     def __init__(self, keyboard, triads, config):
         self.keyboard = keyboard
         self.triads = triads
         self.config = config
         self.params = config.get('annealing', {})
         self.iterations = int(self.params.get('iterations', 1000))
+        self.restrict_same_row = self.params.get('restrict_same_row') in ['yes', '1', 1, True]
+        self.relocatable = self._get_relocatable_keys()
+
+        # Incremental update support
+        self.char_to_triads = defaultdict(list)
+        for triad in self.triads:
+            for char in triad:
+                self.char_to_triads[char].append(triad)
+        for char in self.char_to_triads:
+            self.char_to_triads[char] = list(set(self.char_to_triads[char]))
+        self.total_freq = sum(v for k, v in self.triads.items() if len(k) == 3 and all(c in self.keyboard.map for c in k))
+
+    def _get_relocatable_keys(self):
+        reloc = []
+        mask_conf = self.config.get('mask_row', {})
+        for r_idx, row_data in mask_conf.items():
+            r = int(r_idx) - 1
+            mask = [int(x) for x in row_data['mask'].split()]
+            for c, m in enumerate(mask):
+                if m == 1: reloc.append((r, c))
+        return reloc
+
+    def calculate_weighted_delta(self, k1, k2):
+        char1 = self.keyboard.keys[k1[0]][k1[1]]['lc']
+        char1_uc = self.keyboard.keys[k1[0]][k1[1]]['uc']
+        char2 = self.keyboard.keys[k2[0]][k2[1]]['lc']
+        char2_uc = self.keyboard.keys[k2[0]][k2[1]]['uc']
+
+        affected_triads = set(self.char_to_triads[char1]) | set(self.char_to_triads[char1_uc]) | \
+                          set(self.char_to_triads[char2]) | set(self.char_to_triads[char2_uc])
+
+        effort_before = sum(self.keyboard.get_triad_effort(t) * self.triads[t] for t in affected_triads)
+        self.keyboard.swap_keys(k1, k2)
+        effort_after = sum(self.keyboard.get_triad_effort(t) * self.triads[t] for t in affected_triads)
+
+        return effort_after - effort_before
+
+class SimulatedAnnealing(OptimizerBase):
+    def __init__(self, keyboard, triads, config):
+        super().__init__(keyboard, triads, config)
         self.t0 = float(self.params.get('t0', 10))
         self.k = float(self.params.get('k', 10))
         self.p0 = float(self.params.get('p0', 1))
-        self.restrict_same_row = self.params.get('restrict_same_row') in ['yes', '1', 1, True]
-        self.relocatable = self._get_relocatable_keys()
 
     def find_best_swap(self):
         best_swap = None
@@ -552,21 +612,14 @@ class SimulatedAnnealing:
                 self.keyboard.swap_keys(k1, k2) # swap back
         return best_swap, best_effort
 
-    def _get_relocatable_keys(self):
-        reloc = []
-        mask_conf = self.config.get('mask_row', {})
-        for r_idx, row_data in mask_conf.items():
-            r = int(r_idx) - 1
-            mask = [int(x) for x in row_data['mask'].split()]
-            for c, m in enumerate(mask):
-                if m == 1: reloc.append((r, c))
-        return reloc
-
     def run(self):
+        if not self.total_freq: return self.keyboard
         current_effort = self.keyboard.calculate_effort(self.triads)
+        current_weighted_effort = current_effort * self.total_freq
         print(f"Initial Effort: {current_effort}")
         best_keyboard = copy.deepcopy(self.keyboard)
-        best_effort = current_effort
+        best_weighted_effort = current_weighted_effort
+
         for i in range(1, self.iterations + 1):
             if not self.relocatable: break
             k1 = random.choice(self.relocatable)
@@ -578,25 +631,74 @@ class SimulatedAnnealing:
                 k2 = random.choice(self.relocatable)
                 while k1 == k2: k2 = random.choice(self.relocatable)
 
-            self.keyboard.swap_keys(k1, k2)
-            new_effort = self.keyboard.calculate_effort(self.triads)
-            deffort = new_effort - current_effort
+            weighted_delta = self.calculate_weighted_delta(k1, k2)
+            deffort = weighted_delta / self.total_freq
+
             t = self.t0 * math.exp(-i * self.k / self.iterations)
             accept = False
             if deffort < 0: accept = True
             else:
                 p = self.p0 * math.exp(-deffort / t) if t > 0 else 0
                 if random.random() < p: accept = True
+
             if accept:
-                current_effort = new_effort
-                if current_effort < best_effort:
-                    best_effort = current_effort
+                current_weighted_effort += weighted_delta
+                if current_weighted_effort < best_weighted_effort:
+                    best_weighted_effort = current_weighted_effort
                     best_keyboard = copy.deepcopy(self.keyboard)
-                    print(f"Iter {i}: New Best Effort: {best_effort:.4f}")
+                    print(f"Iter {i}: New Best Effort: {best_weighted_effort / self.total_freq:.4f}")
             else:
                 self.keyboard.swap_keys(k1, k2)
-            if i % 100 == 0:
-                print(f"Iter {i}, Temp {t:.4f}, Effort {current_effort:.4f}")
+
+            if i % 1000 == 0:
+                print(f"Iter {i}, Temp {t:.4f}, Effort {current_weighted_effort / self.total_freq:.4f}")
+        return best_keyboard
+
+class LateAcceptanceHillClimbing(OptimizerBase):
+    def __init__(self, keyboard, triads, config):
+        super().__init__(keyboard, triads, config)
+        self.history_size = int(self.params.get('history_size', 500))
+
+    def run(self):
+        if not self.total_freq: return self.keyboard
+        current_effort = self.keyboard.calculate_effort(self.triads)
+        current_weighted_effort = current_effort * self.total_freq
+
+        history = [current_weighted_effort] * self.history_size
+        best_keyboard = copy.deepcopy(self.keyboard)
+        best_weighted_effort = current_weighted_effort
+
+        print(f"Initial Effort: {current_effort}")
+
+        for i in range(1, self.iterations + 1):
+            if not self.relocatable: break
+            k1 = random.choice(self.relocatable)
+            if self.restrict_same_row:
+                same_row = [rk for rk in self.relocatable if rk[0] == k1[0] and rk != k1]
+                if not same_row: continue
+                k2 = random.choice(same_row)
+            else:
+                k2 = random.choice(self.relocatable)
+                while k1 == k2: k2 = random.choice(self.relocatable)
+
+            weighted_delta = self.calculate_weighted_delta(k1, k2)
+            new_weighted_effort = current_weighted_effort + weighted_delta
+
+            v = i % self.history_size
+            if new_weighted_effort <= current_weighted_effort or new_weighted_effort <= history[v]:
+                current_weighted_effort = new_weighted_effort
+                if current_weighted_effort < best_weighted_effort:
+                    best_weighted_effort = current_weighted_effort
+                    best_keyboard = copy.deepcopy(self.keyboard)
+                    print(f"Iter {i}: New Best Effort: {best_weighted_effort / self.total_freq:.4f}")
+            else:
+                self.keyboard.swap_keys(k1, k2)
+
+            history[v] = current_weighted_effort
+
+            if i % 1000 == 0:
+                print(f"Iter {i}, Effort {current_weighted_effort / self.total_freq:.4f}")
+
         return best_keyboard
 
 if __name__ == '__main__':

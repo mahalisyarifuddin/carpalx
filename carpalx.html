@@ -409,6 +409,7 @@
 							<label id="optModeLabel" for="optModeSelect">Mode</label>
 							<select id="optModeSelect">
 								<option value="full">Full (Simulated Annealing)</option>
+								<option value="lahc">Late Acceptance Hill Climbing</option>
 								<option value="partial">Partial (Iterative Key Swaps)</option>
 							</select>
 						</div>
@@ -424,6 +425,10 @@
 							<div class="group">
 								<label id="iterationsLimitLabel">Iterations</label>
 								<input type="number" id="maxIterations" value="5000">
+							</div>
+							<div class="group hidden" id="historySizeGroup">
+								<label id="historySizeLabel">History Size</label>
+								<input type="number" id="historySize" value="500">
 							</div>
 						</div>
 						<div id="partialParams" class="group row hidden" style="gap: 0.5rem; margin-bottom: 0;">
@@ -858,17 +863,11 @@
 					let totalEffort = 0;
 					let totalCount = 0;
 					for (let triad in triads) {
-						let count = triads[triad];
-						if (triad.length !== 3)
-							continue;
-						let c1 = triad[0]
-						  , c2 = triad[1]
-						  , c3 = triad[2];
-						if (!this.map[c1] || !this.map[c2] || !this.map[c3])
-							continue;
+						if (triad.length !== 3) continue;
+						if (!this.map[triad[0]] || !this.map[triad[1]] || !this.map[triad[2]]) continue;
 						let effort = this.calculateTriadEffort(triad);
-						totalEffort += effort * count;
-						totalCount += count;
+						totalEffort += effort * triads[triad];
+						totalCount += triads[triad];
 					}
 					return totalCount > 0 ? totalEffort / totalCount : 0;
 				}
@@ -990,6 +989,45 @@
 					}
 
 					return triad_effort;
+				}
+
+				getCharToTriads(triads) {
+					const charToTriads = {};
+					for (let triad in triads) {
+						for (let char of triad) {
+							if (!charToTriads[char]) charToTriads[char] = new Set();
+							charToTriads[char].add(triad);
+						}
+					}
+					return charToTriads;
+				}
+
+				calculateWeightedDelta(k1, k2, triads, charToTriads) {
+					const char1 = this.keys[k1[0]][k1[1]].lc;
+					const char1_uc = this.keys[k1[0]][k1[1]].uc;
+					const char2 = this.keys[k2[0]][k2[1]].lc;
+					const char2_uc = this.keys[k2[0]][k2[1]].uc;
+
+					const affectedTriads = new Set([
+						...(charToTriads[char1] || []),
+						...(charToTriads[char1_uc] || []),
+						...(charToTriads[char2] || []),
+						...(charToTriads[char2_uc] || [])
+					]);
+
+					let effortBefore = 0;
+					affectedTriads.forEach(t => {
+						effortBefore += this.calculateTriadEffort(t) * triads[t];
+					});
+
+					this.swapKeys(k1, k2);
+
+					let effortAfter = 0;
+					affectedTriads.forEach(t => {
+						effortAfter += this.calculateTriadEffort(t) * triads[t];
+					});
+
+					return effortAfter - effortBefore;
 				}
 
 				swapKeys(k1_coord, k2_coord) {
@@ -1129,6 +1167,7 @@
 					penaltyParamsTitle: 'Penalty Parameters',
 					maxSwapsLabel: 'Max Swaps',
 					iterationsLimitLabel: 'Iterations',
+					historySizeLabel: 'History Size',
 					optModeLabel: 'Mode',
 					resetParamsBtn: 'Reset Params',
 					baseLayoutLabel: 'Base Layout',
@@ -1153,6 +1192,7 @@
 					penaltyParamsTitle: 'Parameter Penalti',
 					maxSwapsLabel: 'Maks Pertukaran',
 					iterationsLimitLabel: 'Iterasi',
+					historySizeLabel: 'Ukuran Riwayat',
 					optModeLabel: 'Mode',
 					resetParamsBtn: 'Reset Parameter',
 					baseLayoutLabel: 'Tata Letak Dasar',
@@ -1371,9 +1411,15 @@
 				}
 
 				updateModeUI() {
-					if (elements.optModeSelect.value === 'full') {
+					const mode = elements.optModeSelect.value;
+					if (mode === 'full' || mode === 'lahc') {
 						elements.fullParams.classList.remove('hidden');
 						elements.partialParams.classList.add('hidden');
+						if (mode === 'lahc') {
+							elements.historySizeGroup.classList.remove('hidden');
+						} else {
+							elements.historySizeGroup.classList.add('hidden');
+						}
 					} else {
 						elements.fullParams.classList.add('hidden');
 						elements.partialParams.classList.remove('hidden');
@@ -1514,6 +1560,8 @@
 
 					if (elements.optModeSelect.value === 'partial') {
 						await this.runPartialOptimization(triads);
+					} else if (elements.optModeSelect.value === 'lahc') {
+						await this.runLahcOptimization(triads);
 					} else {
 						await this.runFullOptimization(triads);
 					}
@@ -1579,7 +1627,16 @@
 					if (relocatable.length < 2)
 						return;
 
+					const charToTriads = this.carpalx.getCharToTriads(triads);
+					let totalFreq = 0;
+					for (let t in triads) {
+						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
+							totalFreq += triads[t];
+						}
+					}
+
 					let currentEffort = this.carpalx.calculateEffort(triads);
+					let currentWeightedEffort = currentEffort * totalFreq;
 					this.bestEffort = currentEffort;
 					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
 						lc: k.lc,
@@ -1603,9 +1660,8 @@
 							k2 = relocatable[k2_idx];
 						}
 
-						this.carpalx.swapKeys(k1, k2);
-						const newEffort = this.carpalx.calculateEffort(triads);
-						const deffort = newEffort - currentEffort;
+						const weightedDelta = this.carpalx.calculateWeightedDelta(k1, k2, triads, charToTriads);
+						const deffort = weightedDelta / totalFreq;
 						const t = t0 * Math.exp(-i * k / maxIterations);
 
 						let accept = false;
@@ -1618,7 +1674,8 @@
 						}
 
 						if (accept) {
-							currentEffort = newEffort;
+							currentWeightedEffort += weightedDelta;
+							currentEffort = currentWeightedEffort / totalFreq;
 							if (currentEffort < this.bestEffort) {
 								this.bestEffort = currentEffort;
 								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
@@ -1634,6 +1691,91 @@
 						if (i % 20 === 0) {
 							elements.iterations.textContent = i;
 							elements.temperature.textContent = t.toFixed(6);
+							elements.totalEffort.textContent = currentEffort.toFixed(6);
+							await new Promise(r=>setTimeout(r, 0));
+						}
+					}
+
+					this.carpalx.keys.forEach((row,r)=>{
+						row.forEach((key,c)=>{
+							key.lc = bestLayout[r][c].lc;
+							key.uc = bestLayout[r][c].uc;
+							this.carpalx.map[key.lc] = key;
+							this.carpalx.map[key.uc] = key;
+							this.carpalx.calculateKeyEffort(key);
+						}
+						);
+					}
+					);
+					this.renderKeyboard();
+					this.updateEffort();
+					this.saveState();
+				}
+
+				async runLahcOptimization(triads) {
+					const maxIterations = parseInt(elements.maxIterations.value) || 5000;
+					const historySize = parseInt(elements.historySize.value) || 500;
+					const relocatable = this.carpalx.getRelocatableKeys();
+					if (relocatable.length < 2) return;
+
+					const charToTriads = this.carpalx.getCharToTriads(triads);
+					let totalFreq = 0;
+					for (let t in triads) {
+						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
+							totalFreq += triads[t];
+						}
+					}
+
+					let currentEffort = this.carpalx.calculateEffort(triads);
+					let currentWeightedEffort = currentEffort * totalFreq;
+					let history = new Array(historySize).fill(currentWeightedEffort);
+
+					this.bestEffort = currentEffort;
+					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
+						lc: k.lc,
+						uc: k.uc
+					})));
+
+					elements.temperature.textContent = 'N/A';
+
+					for (let i = 1; i <= maxIterations && this.optimizing; i++) {
+						const k1_idx = Math.floor(Math.random() * relocatable.length);
+						const k1 = relocatable[k1_idx];
+						let k2;
+
+						if (this.carpalx.restrictSameRow) {
+							const sameRowKeys = relocatable.filter(rk=>rk[0] === k1[0] && (rk[0] !== k1[0] || rk[1] !== k1[1]));
+							if (sameRowKeys.length === 0) continue;
+							k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
+						} else {
+							let k2_idx = Math.floor(Math.random() * relocatable.length);
+							while (k1_idx === k2_idx) k2_idx = Math.floor(Math.random() * relocatable.length);
+							k2 = relocatable[k2_idx];
+						}
+
+						const weightedDelta = this.carpalx.calculateWeightedDelta(k1, k2, triads, charToTriads);
+						const newWeightedEffort = currentWeightedEffort + weightedDelta;
+
+						const v = i % historySize;
+						if (newWeightedEffort <= currentWeightedEffort || newWeightedEffort <= history[v]) {
+							currentWeightedEffort = newWeightedEffort;
+							currentEffort = currentWeightedEffort / totalFreq;
+							if (currentEffort < this.bestEffort) {
+								this.bestEffort = currentEffort;
+								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
+									lc: k.lc,
+									uc: k.uc
+								})));
+								this.renderKeyboard();
+							}
+						} else {
+							this.carpalx.swapKeys(k1, k2);
+						}
+
+						history[v] = currentWeightedEffort;
+
+						if (i % 20 === 0) {
+							elements.iterations.textContent = i;
 							elements.totalEffort.textContent = currentEffort.toFixed(6);
 							await new Promise(r=>setTimeout(r, 0));
 						}

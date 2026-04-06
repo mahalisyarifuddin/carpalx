@@ -98,6 +98,8 @@ def update_ipynb(filepath):
         "minswaps   = 1\n",
         "maxswaps   = 3\n",
         "onestep    = no\n",
+        "mode       = lahc\n",
+        "history_size = 500\n",
         "</annealing>\n",
         "<<include mask/letters.conf>>\n",
         "<<include modes/mode.conf>>\n",
@@ -413,7 +415,7 @@ def update_ipynb(filepath):
     injected_lines = []
     for line in core_lines:
         injected_lines.append(line)
-        if "self.map[key2['uc']] = key2" in line and "def swap_keys" in injected_lines[-5]: # heuristic
+        if "self.map[key2['uc']] = key2" in line:
              injected_lines.extend(plot_method)
 
     new_cells.append({
@@ -442,8 +444,7 @@ def update_ipynb(filepath):
                     new_run.append("        self.triads = Corpus(self.config['corpus'], self.config).triads\n")
                     new_run.append("        if not self.triads: return\n")
                     new_run.append("        self.keyboard.plot(\"Initial Keyboard\")\n")
-                    new_run.append("        optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)\n")
-                    new_run.append("        self.keyboard = optimizer.run()\n")
+                    new_run.append("        self.optimize()\n")
                     new_run.append("        self.keyboard.plot(\"Optimized Keyboard\")\n")
                     skip_old_run = True
                 elif skip_old_run and (line.startswith('    def ') or line.startswith('class ')):
