@@ -1,6 +1,6 @@
 # Pengoptimal Tata Letak Keyboard Carpalx
 
-**Carpalx** adalah pengoptimal tata letak keyboard yang menggunakan simulated annealing untuk meminimalkan upaya pengetikan. Repositori ini menawarkan tiga implementasi: aplikasi web mandiri, buku catatan Google Colab, dan skrip Python.
+**Carpalx** adalah pengoptimal tata letak keyboard yang menggunakan simulated annealing dan Late Acceptance Hill Climbing (LAHC) untuk meminimalkan upaya pengetikan. Repositori ini menawarkan tiga implementasi: aplikasi web mandiri, buku catatan Google Colab, dan skrip Python.
 
 ## Implementasi
 
@@ -10,7 +10,7 @@ Alat HTML-JS mandiri untuk optimasi instan di browser Anda.
 
 *   **Visualisasi Keyboard**: Perenderan tata letak secara real-time.
 *   **Analisis Berbasis File**: Unggah korpus `.txt` untuk perhitungan upaya yang tepat dan pelatihan optimasi.
-*   **Optimasi**: Jalankan simulated annealing langsung di browser dengan penalti yang dapat dikonfigurasi dan batasan baris.
+*   **Optimasi**: Jalankan simulated annealing atau **Late Acceptance Hill Climbing (LAHC)** secara langsung di browser dengan penalti yang dapat dikonfigurasi dan batasan baris.
 
 **Cara penggunaan:** Buka `carpalx.html` di browser web modern mana pun. Unggah file teks untuk memulai analisis atau optimasi.
 

@@ -1,6 +1,6 @@
 # Carpalx Keyboard Optimizer
 
-**Carpalx** is a keyboard layout optimizer that uses simulated annealing to minimize typing effort. This repository offers three implementations: a standalone web application, a Google Colab notebook, and a Python script.
+**Carpalx** is a keyboard layout optimizer that uses simulated annealing and Late Acceptance Hill Climbing (LAHC) to minimize typing effort. This repository offers three implementations: a standalone web application, a Google Colab notebook, and a Python script.
 
 ## Implementations
 
