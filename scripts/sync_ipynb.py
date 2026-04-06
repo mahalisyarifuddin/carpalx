@@ -54,9 +54,9 @@ def update_ipynb(filepath):
             "try:\n",
             "    import matplotlib.pyplot as plt\n",
             "    import matplotlib.patches as patches\n",
-            "    from matplotlib.font_manager import FontProperties\n",
             "except ImportError:\n",
             "    plt = None\n",
+            "    patches = None\n",
             "\n",
             "print(\"Libraries imported successfully.\")"
         ]
@@ -79,7 +79,7 @@ def update_ipynb(filepath):
         "VIRTUAL_FILES = {}\n",
         "\n",
         "VIRTUAL_FILES['etc/carpalx.conf'] = \"\"\"\n",
-        "action = loadkeyboard,loadtriads,optimize,quit\n",
+        "action = loadkeyboard,loadtriads,plot,optimize,plot,quit\n",
         "corpus  = corpus.txt\n",
         "mode    = english\n",
         "triads_overlap  = yes\n",
@@ -374,85 +374,13 @@ def update_ipynb(filepath):
         if not skip:
             core_lines.append(line + '\n')
 
-    # Inject plot method into Keyboard class
-    final_core_lines = []
-    for line in core_lines:
-        final_core_lines.append(line)
-        if 'def swap_keys(self, k1_coord, k2_coord):' in line:
-             # Find end of swap_keys method to inject plot method
-             pass
-
-    # Simple injection after Keyboard class definition for now (at the end of class)
-    # Actually carpalx.py structure:
-    # class Keyboard:
-    #   ...
-    #   def swap_keys(self, k1_coord, k2_coord):
-    #     ...
-
-    plot_method = [
-        "    def plot(self, title=\"Keyboard Layout\"):\n",
-        "        if not plt: return\n",
-        "        fig, ax = plt.subplots(figsize=(12, 5))\n",
-        "        ax.set_xlim(0, 15)\n",
-        "        ax.set_ylim(-5, 0)\n",
-        "        ax.set_aspect('equal')\n",
-        "        ax.axis('off')\n",
-        "        ax.set_title(title)\n",
-        "\n",
-        "        for row in self.keys:\n",
-        "            for k in row:\n",
-        "                r, c = k['row'], k['col']\n",
-        "                x = c + (r * 0.5)\n",
-        "                y = -r\n",
-        "                \n",
-        "                rect = patches.Rectangle((x, y-0.9), 0.9, 0.9, linewidth=1, edgecolor='black', facecolor='white')\n",
-        "                ax.add_patch(rect)\n",
-        "                ax.text(x + 0.45, y - 0.45, k['uc'], ha='center', va='center', fontsize=10, fontweight='bold')\n",
-        "        plt.show()\n"
-    ]
-
-    # Find where to inject plot_method in core_lines
-    injected_lines = []
-    for line in core_lines:
-        injected_lines.append(line)
-        if "self.map[key2['uc']] = key2" in line:
-             injected_lines.extend(plot_method)
-
     new_cells.append({
         "cell_type": "code",
         "execution_count": None,
         "metadata": {},
         "outputs": [],
-        "source": injected_lines
+        "source": core_lines
     })
-
-    # Update Carpalx.run to call plot
-    for cell in new_cells:
-        if cell['cell_type'] == 'code' and any('class Carpalx:' in l for l in cell['source']):
-            new_run = []
-            skip_old_run = False
-            current_class = None
-            for line in cell['source']:
-                if line.startswith('class '):
-                    current_class = line.split('(')[0].split(':')[0].strip().split()[-1]
-
-                if 'def run(self):' in line and current_class == 'Carpalx':
-                    new_run.append(line)
-                    new_run.append("        print(f\"Loading keyboard from {self.config['keyboard_input']}\")\n")
-                    new_run.append("        self.keyboard = Keyboard(self.config['keyboard_input'], self.config)\n")
-                    new_run.append("        print(f\"Loading triads from {self.config['corpus']}\")\n")
-                    new_run.append("        self.triads = Corpus(self.config['corpus'], self.config).triads\n")
-                    new_run.append("        if not self.triads: return\n")
-                    new_run.append("        self.keyboard.plot(\"Initial Keyboard\")\n")
-                    new_run.append("        self.optimize()\n")
-                    new_run.append("        self.keyboard.plot(\"Optimized Keyboard\")\n")
-                    skip_old_run = True
-                elif skip_old_run and (line.startswith('    def ') or line.startswith('class ')):
-                    skip_old_run = False
-                    new_run.append(line)
-                elif not skip_old_run:
-                    new_run.append(line)
-            cell['source'] = new_run
 
     # 6. Execution Markdown
     new_cells.append({

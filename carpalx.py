@@ -14,9 +14,9 @@ import pickle
 try:
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
-    from matplotlib.font_manager import FontProperties
 except ImportError:
     plt = None
+    patches = None
 
 # --- Configuration Parser ---
 
@@ -194,6 +194,8 @@ class Carpalx:
             self.config['effort_model'] = {}
         self.keyboard = None
         self.triads = None
+        self._plot_count = 0
+        self._optimized = False
 
     def run(self):
         actions = self.config.get('action', '').split(',')
@@ -208,6 +210,8 @@ class Carpalx:
                 self.optimize()
             elif action == 'reporteffort':
                 self.report_effort()
+            elif action == 'plot':
+                self.plot_keyboard()
             elif action == 'quit' or action == 'exit':
                 break
             else:
@@ -216,6 +220,7 @@ class Carpalx:
     def load_keyboard(self):
         print(f"Loading keyboard from {self.config['keyboard_input']}")
         self.keyboard = Keyboard(self.config['keyboard_input'], self.config)
+        self._optimized = False
 
     def load_triads(self):
         print(f"Loading triads from {self.config['corpus']}")
@@ -243,6 +248,7 @@ class Carpalx:
             optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
             self.keyboard = optimizer.run()
 
+        self._optimized = True
         if 'keyboard_output' in self.config:
             out_file = self.config['keyboard_output']
             print(f"Saving optimized keyboard to {out_file}")
@@ -252,6 +258,16 @@ class Carpalx:
         print("Reporting effort...")
         effort = self.keyboard.calculate_effort(self.triads)
         print(f"Total Effort: {effort}")
+
+    def plot_keyboard(self):
+        if self.keyboard:
+            self._plot_count += 1
+            print(f"Plotting keyboard layout {self._plot_count}...")
+            if self._optimized:
+                title = f"Optimized Keyboard Layout (Effort: {self.keyboard.calculate_effort(self.triads):.4f})"
+            else:
+                title = "Initial Keyboard Layout"
+            self.keyboard.plot(title)
 
 class Keyboard:
     def __init__(self, layout_file, config):
@@ -496,6 +512,34 @@ class Keyboard:
         self.map[key1['uc']] = key1
         self.map[key2['lc']] = key2
         self.map[key2['uc']] = key2
+
+    def plot(self, title="Keyboard Layout"):
+        if not plt or not patches:
+            print("Matplotlib/patches not found. Skipping plot.")
+            return
+
+        fig, ax = plt.subplots(figsize=(12, 5))
+        ax.set_xlim(0, 15)
+        ax.set_ylim(-5, 0)
+        ax.set_aspect('equal')
+        ax.axis('off')
+        ax.set_title(title)
+
+        # Standard Carpalx/keyboard stagger
+        stagger_units = [0, 1, 1.25, 1.75]
+
+        for r_idx, row in enumerate(self.keys):
+            stagger = stagger_units[r_idx] if r_idx < len(stagger_units) else 0
+            for k in row:
+                r, c = k['row'], k['col']
+                x = c + stagger
+                y = -r
+
+                rect = patches.Rectangle((x, y-0.9), 0.9, 0.9, linewidth=1, edgecolor='black', facecolor='white')
+                ax.add_patch(rect)
+                ax.text(x + 0.45, y - 0.45, k['uc'], ha='center', va='center', fontsize=10, fontweight='bold')
+
+        plt.show()
 
 class Corpus:
     def __init__(self, filepath, config):
