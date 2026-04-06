@@ -10,7 +10,7 @@ A standalone HTML-JS tool for instant optimization in your browser.
 
 *   **Keyboard Visualization**: Real-time layout rendering.
 *   **File-Based Analysis**: Upload `.txt` corpora for precise effort calculation and optimization training.
-*   **Optimization**: Run simulated annealing directly in the browser with configurable penalties and row constraints.
+*   **Optimization**: Run simulated annealing or **Late Acceptance Hill Climbing (LAHC)** directly in the browser with configurable penalties and row constraints.
 
 **To use:** Open `carpalx.html` in any modern web browser. Upload a text file to begin analysis or optimization.
 
