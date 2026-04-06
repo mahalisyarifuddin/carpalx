@@ -353,6 +353,8 @@ class Keyboard:
         total_effort = 0
         total_triads = 0
         for triad, freq in triads.items():
+            if len(triad) != 3: continue
+            if any(c not in self.map for c in triad): continue
             triad_effort = self.get_triad_effort(triad)
             total_effort += triad_effort * freq
             total_triads += freq
@@ -555,7 +557,7 @@ class OptimizerBase:
                 self.char_to_triads[char].append(triad)
         for char in self.char_to_triads:
             self.char_to_triads[char] = list(set(self.char_to_triads[char]))
-        self.total_freq = sum(self.triads.values())
+        self.total_freq = sum(v for k, v in self.triads.items() if len(k) == 3 and all(c in self.keyboard.map for c in k))
 
     def _get_relocatable_keys(self):
         reloc = []

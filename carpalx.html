@@ -863,6 +863,8 @@
 					let totalEffort = 0;
 					let totalCount = 0;
 					for (let triad in triads) {
+						if (triad.length !== 3) continue;
+						if (!this.map[triad[0]] || !this.map[triad[1]] || !this.map[triad[2]]) continue;
 						let effort = this.calculateTriadEffort(triad);
 						totalEffort += effort * triads[triad];
 						totalCount += triads[triad];
@@ -1627,7 +1629,11 @@
 
 					const charToTriads = this.carpalx.getCharToTriads(triads);
 					let totalFreq = 0;
-					for (let t in triads) totalFreq += triads[t];
+					for (let t in triads) {
+						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
+							totalFreq += triads[t];
+						}
+					}
 
 					let currentEffort = this.carpalx.calculateEffort(triads);
 					let currentWeightedEffort = currentEffort * totalFreq;
@@ -1714,7 +1720,11 @@
 
 					const charToTriads = this.carpalx.getCharToTriads(triads);
 					let totalFreq = 0;
-					for (let t in triads) totalFreq += triads[t];
+					for (let t in triads) {
+						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
+							totalFreq += triads[t];
+						}
+					}
 
 					let currentEffort = this.carpalx.calculateEffort(triads);
 					let currentWeightedEffort = currentEffort * totalFreq;
