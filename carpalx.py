@@ -196,6 +196,7 @@ class Carpalx:
         self.triads = None
         self._plot_count = 0
         self._optimized = False
+        self.history = []
 
     def run(self):
         actions = self.config.get('action', '').split(',')
@@ -212,6 +213,8 @@ class Carpalx:
                 self.report_effort()
             elif action == 'plot':
                 self.plot_keyboard()
+            elif action == 'plot_history':
+                self.plot_history()
             elif action == 'quit' or action == 'exit':
                 break
             else:
@@ -232,21 +235,25 @@ class Carpalx:
             print("Running Partial Optimization (Iterative Key Swaps)...")
             max_swaps = int(self.config.get('annealing', {}).get('maxswaps', 10))
             optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
+            self.history = []
             for i in range(1, max_swaps + 1):
                 best_swap, best_effort = optimizer.find_best_swap()
                 if best_swap:
                     self.keyboard.swap_keys(best_swap[0], best_swap[1])
                     print(f"Swap {i}: Swapped {self.keyboard.keys[best_swap[0][0]][best_swap[0][1]]['lc']} and {self.keyboard.keys[best_swap[1][0]][best_swap[1][1]]['lc']}, Effort: {best_effort:.4f}")
+                    self.history.append((i, best_effort))
                 else:
                     break
         elif mode == 'lahc':
             print("Optimizing keyboard (Late Acceptance Hill Climbing)...")
             optimizer = LateAcceptanceHillClimbing(self.keyboard, self.triads, self.config)
             self.keyboard = optimizer.run()
+            self.history = optimizer.history
         else:
             print("Optimizing keyboard (Full Simulated Annealing)...")
             optimizer = SimulatedAnnealing(self.keyboard, self.triads, self.config)
             self.keyboard = optimizer.run()
+            self.history = optimizer.history
 
         self._optimized = True
         if 'keyboard_output' in self.config:
@@ -268,6 +275,24 @@ class Carpalx:
             else:
                 title = "Initial Keyboard Layout"
             self.keyboard.plot(title)
+
+    def plot_history(self):
+        if not self.history:
+            print("No optimization history to plot.")
+            return
+        if not plt:
+            print("Matplotlib not found. Skipping history plot.")
+            return
+
+        print("Plotting optimization history...")
+        plt.figure(figsize=(10, 6))
+        x, y = zip(*self.history)
+        plt.plot(x, y, marker='o' if len(x) < 20 else None)
+        plt.title("Optimization Progress")
+        plt.xlabel("Iteration")
+        plt.ylabel("Typing Effort")
+        plt.grid(True)
+        plt.show()
 
 class Keyboard:
     def __init__(self, layout_file, config):
@@ -593,6 +618,7 @@ class OptimizerBase:
         self.iterations = int(self.params.get('iterations', 1000))
         self.restrict_same_row = self.params.get('restrict_same_row') in ['yes', '1', 1, True]
         self.relocatable = self._get_relocatable_keys()
+        self.history = []
 
         # Incremental update support
         self.char_to_triads = defaultdict(list)
@@ -694,6 +720,8 @@ class SimulatedAnnealing(OptimizerBase):
             else:
                 self.keyboard.swap_keys(k1, k2)
 
+            if i % 100 == 0:
+                self.history.append((i, current_weighted_effort / self.total_freq))
             if i % 1000 == 0:
                 print(f"Iter {i}, Temp {t:.4f}, Effort {current_weighted_effort / self.total_freq:.4f}")
         return best_keyboard
@@ -740,6 +768,8 @@ class LateAcceptanceHillClimbing(OptimizerBase):
 
             history[v] = current_weighted_effort
 
+            if i % 100 == 0:
+                self.history.append((i, current_weighted_effort / self.total_freq))
             if i % 1000 == 0:
                 print(f"Iter {i}, Effort {current_weighted_effort / self.total_freq:.4f}")
 

@@ -79,7 +79,7 @@ def update_ipynb(filepath):
         "VIRTUAL_FILES = {}\n",
         "\n",
         "VIRTUAL_FILES['etc/carpalx.conf'] = \"\"\"\n",
-        "action = loadkeyboard,loadtriads,plot,optimize,plot,quit\n",
+        "action = loadkeyboard,loadtriads,plot,optimize,plot,plot_history,quit\n",
         "corpus  = corpus.txt\n",
         "mode    = english\n",
         "triads_overlap  = yes\n",
