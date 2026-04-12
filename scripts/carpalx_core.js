@@ -29,6 +29,7 @@ class Carpalx {
         this.fr = 0.3;
         this.ff = 0.3;
         this.path_offset = 0;
+        this.pathCosts = {};
 
         this.baseEfforts = [[5, 4, 4, 4, 4, 4, 4.5, 4, 4, 4, 4, 4.5, 5.5], [2, 2, 2, 2, 2.5, 3, 2, 2, 2, 2, 2.5, 4, 6], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2], [2, 2, 2, 2, 3.5, 2, 2, 2, 2, 2]];
 
@@ -39,7 +40,20 @@ class Carpalx {
 
         this.fingers = [[0, 0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9]];
 
+        this.initPathCosts();
         this.initKeyboard();
+    }
+
+    initPathCosts() {
+        this.pathCosts = {};
+        for (let h = 0; h <= 2; h++) {
+            for (let r = 0; r <= 7; r++) {
+                for (let f = 0; f <= 7; f++) {
+                    let key = `${h}${r}${f}`;
+                    this.pathCosts[key] = this.fh * h + this.fr * r + this.ff * f;
+                }
+            }
+        }
     }
 
     initKeyboard() {
@@ -180,7 +194,7 @@ class Carpalx {
                 else row_flag = 0;
             }
 
-            let path_cost = this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag;
+            let path_cost = this.pathCosts[`${hand_flag}${row_flag}${finger_flag}`] || (this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag);
             triad_effort += this.ks * (this.path_offset + path_cost);
         }
 

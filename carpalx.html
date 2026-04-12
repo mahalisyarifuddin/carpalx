@@ -610,6 +610,7 @@
 					this.fr = 0.3;
 					this.ff = 0.3;
 					this.path_offset = 0;
+					this.pathCosts = {};
 
 					this.baseEfforts = [[5, 4, 4, 4, 4, 4, 4.5, 4, 4, 4, 4, 4.5, 5.5], [2, 2, 2, 2, 2.5, 3, 2, 2, 2, 2, 2.5, 4, 6], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2], [2, 2, 2, 2, 3.5, 2, 2, 2, 2, 2]];
 
@@ -625,7 +626,20 @@
 
 					this.mask = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [1, 1, 1, 1, 1, 1, 1, 0, 0, 0]];
 
+					this.initPathCosts();
 					this.initKeyboard();
+				}
+
+				initPathCosts() {
+					this.pathCosts = {};
+					for (let h = 0; h <= 2; h++) {
+						for (let r = 0; r <= 7; r++) {
+							for (let f = 0; f <= 7; f++) {
+								let key = `${h}${r}${f}`;
+								this.pathCosts[key] = this.fh * h + this.fr * r + this.ff * f;
+							}
+						}
+					}
 				}
 
 				initKeyboard(layoutName='qwerty') {
@@ -723,6 +737,8 @@
 						this.ff = params.ff;
 					if (params.path_offset !== undefined)
 						this.path_offset = params.path_offset;
+
+					this.initPathCosts();
 
 					if (params.Pr)
 						this.Pr = [...params.Pr];
@@ -864,7 +880,7 @@
 								row_flag = 0;
 						}
 
-						let path_cost = this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag;
+						let path_cost = this.pathCosts[`${hand_flag}${row_flag}${finger_flag}`] || (this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag);
 						triad_effort += this.ks * (this.path_offset + path_cost);
 					}
 
