@@ -227,7 +227,9 @@ class Carpalx:
 
     def load_triads(self):
         print(f"Loading triads from {self.config['corpus']}")
-        self.triads = Corpus(self.config['corpus'], self.config).triads
+        raw_triads = Corpus(self.config['corpus'], self.config).triads
+        # Pre-filter triads that are not typable on the current keyboard
+        self.triads = {t: f for t, f in raw_triads.items() if len(t) == 3 and all(c in self.keyboard.map for c in t)}
 
     def optimize(self):
         mode = self.config.get('annealing', {}).get('mode', 'full')
@@ -300,6 +302,7 @@ class Keyboard:
         self.layout_file = layout_file
         self.keys = []
         self.map = {}
+        self.path_cache = {}
         self._load_layout(layout_file)
         self._load_effort_model()
 
@@ -356,6 +359,41 @@ class Keyboard:
         if 'finger_distance' not in em or 'row' not in em['finger_distance']:
             print("Warning: No finger distance (base effort) defined.")
             return
+
+        # Cache effort model weights
+        k_param = em['k_param']
+        self.k1 = float(k_param['k1'])
+        self.k2 = float(k_param['k2'])
+        self.k3 = float(k_param['k3'])
+        self.kb = float(k_param['kb'])
+        self.kp = float(k_param['kp'])
+        self.ks = float(k_param['ks'])
+
+        penalties = em['weight_param']['penalties']
+        self.w_hand = float(penalties['weight']['hand'])
+        self.w_row = float(penalties['weight']['row'])
+        self.w_finger = float(penalties['weight']['finger'])
+        self.base_penalty = float(penalties['default'])
+
+        path_cost_conf = em.get('path_cost', {})
+        self.path_offset = float(penalties.get('path_offset', 0))
+        self.fh = float(path_cost_conf.get('fh', 1))
+        self.fr = float(path_cost_conf.get('fr', 0.3))
+        self.ff = float(path_cost_conf.get('ff', 0.3))
+
+        # Pre-calculate path effort cache
+        self.path_cache = {}
+        for h in range(3):
+            for r in range(8):
+                for f in range(8):
+                    path_key_str = f"{h}{r}{f}"
+                    cost = path_cost_conf.get(path_key_str)
+                    if cost is not None:
+                        if '#' in str(cost): cost = str(cost).split('#')[0]
+                        self.path_cache[(h, r, f)] = self.path_offset + float(cost)
+                    else:
+                        self.path_cache[(h, r, f)] = self.path_offset + (self.fh * h + self.fr * r + self.ff * f)
+
         fd_rows = em['finger_distance']['row']
 
         # Row penalties are 0-indexed in Perl config (0, 1, 2, 3)
@@ -369,11 +407,7 @@ class Keyboard:
                     if c < len(efforts):
                         base_effort = efforts[c]
                         key['effort']['base'] = base_effort
-                        penalties = em['weight_param']['penalties']
-                        w_hand = float(penalties['weight']['hand'])
-                        w_row = float(penalties['weight']['row'])
-                        w_finger = float(penalties['weight']['finger'])
-                        base_penalty = float(penalties['default'])
+
                         h_str = 'right' if key['hand'] == 1 else 'left'
                         p_hand = float(penalties['hand'].get(h_str, 0))
                         p_row = float(penalties['row'].get(r_key_penalty, 0))
@@ -381,12 +415,10 @@ class Keyboard:
                         f_vals = [float(x) for x in penalties['finger'][f_str].split()]
                         f_idx = key['finger'] if key['hand'] == 0 else key['finger'] - 5
                         p_finger = f_vals[f_idx] if f_idx < len(f_vals) else 0
-                        total_penalty = base_penalty + w_hand * p_hand + w_row * p_row + w_finger * p_finger
+
+                        total_penalty = self.base_penalty + self.w_hand * p_hand + self.w_row * p_row + self.w_finger * p_finger
                         key['effort']['penalty'] = total_penalty
-                        k_param = em['k_param']
-                        kb = float(k_param['kb'])
-                        kp = float(k_param['kp'])
-                        key['effort']['total'] = kb * base_effort + kp * total_penalty
+                        key['effort']['total'] = self.kb * base_effort + self.kp * total_penalty
                     else:
                         print(f"Warning: No effort defined for key at {r},{c}")
 
@@ -394,8 +426,6 @@ class Keyboard:
         total_effort = 0
         total_triads = 0
         for triad, freq in triads.items():
-            if len(triad) != 3: continue
-            if any(c not in self.map for c in triad): continue
             triad_effort = self.get_triad_effort(triad)
             total_effort += triad_effort * freq
             total_triads += freq
@@ -405,15 +435,6 @@ class Keyboard:
         if len(triad) != 3: return 0
         c1, c2, c3 = triad
         if c1 not in self.map or c2 not in self.map or c3 not in self.map: return 0
-
-        em = self.config['effort_model']
-        k_param = em['k_param']
-        k1_w = float(k_param['k1'])
-        k2_w = float(k_param['k2'])
-        k3_w = float(k_param['k3'])
-        kb = float(k_param['kb'])
-        kp = float(k_param['kp'])
-        ks = float(k_param['ks'])
 
         k1_obj = self.map[c1]
         k2_obj = self.map[c2]
@@ -426,18 +447,17 @@ class Keyboard:
         pe2 = k2_obj['effort']['penalty']
         pe3 = k3_obj['effort']['penalty']
 
-        term_base = k1_w * be1 * (1 + k2_w * be2 * (1 + k3_w * be3))
-        term_penalty = k1_w * pe1 * (1 + k2_w * pe2 * (1 + k3_w * pe3))
-        triad_effort = kb * term_base + kp * term_penalty
+        term_base = self.k1 * be1 * (1 + self.k2 * be2 * (1 + self.k3 * be3))
+        term_penalty = self.k1 * pe1 * (1 + self.k2 * pe2 * (1 + self.k3 * pe3))
+        triad_effort = self.kb * term_base + self.kp * term_penalty
 
-        if ks != 0:
-            path_cost_conf = em.get('path_cost', {})
-            path_effort = self._calculate_path_effort(k1_obj, k2_obj, k3_obj, path_cost_conf)
-            triad_effort += ks * path_effort
+        if self.ks != 0:
+            path_effort = self._calculate_path_effort(k1_obj, k2_obj, k3_obj)
+            triad_effort += self.ks * path_effort
 
         return triad_effort
 
-    def _calculate_path_effort(self, k1, k2, k3, path_cost_conf):
+    def _calculate_path_effort(self, k1, k2, k3):
         h1, h2, h3 = k1['hand'], k2['hand'], k3['hand']
         r1, r2, r3 = k1['row'], k2['row'], k3['row']
         f1, f2, f3 = k1['finger'], k2['finger'], k3['finger']
@@ -491,23 +511,7 @@ class Keyboard:
             elif r2 < r3: row_flag = 1
             else: row_flag = 0
 
-        path_key = f"{hand_flag}{row_flag}{finger_flag}"
-        cost_str = path_cost_conf.get(path_key, 0)
-        if '#' in str(cost_str): cost_str = str(cost_str).split('#')[0]
-
-        path_offset = float(self.config['effort_model']['weight_param']['penalties'].get('path_offset', 0))
-        fh = float(self.config['effort_model']['path_cost'].get('fh', 1))
-        fr = float(self.config['effort_model']['path_cost'].get('fr', 0.3))
-        ff = float(self.config['effort_model']['path_cost'].get('ff', 0.3))
-
-        # If path_key exists in config, use it directly as in the original Perl implementation.
-        # Otherwise, calculate it using fh, fr, ff weights.
-        if path_key in path_cost_conf:
-            # Special case for Perl's 000 triad (not defined in path cost config)
-            # which returns path_offset (since 0 is the default in config.get)
-            return path_offset + float(cost_str)
-        else:
-            return path_offset + (fh * hand_flag + fr * row_flag + ff * finger_flag)
+        return self.path_cache[(hand_flag, row_flag, finger_flag)]
 
     def save(self, filepath):
         with open(filepath, 'w') as f:
