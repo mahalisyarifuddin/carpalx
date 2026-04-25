@@ -666,9 +666,11 @@ class SimulatedAnnealing(OptimizerBase):
         self.p0 = float(self.params.get('p0', 1))
 
     def find_best_swap(self):
+        if not self.total_freq:
+            return None, 0
         best_swap = None
         current_effort = self.keyboard.calculate_effort(self.triads)
-        best_effort = current_effort
+        best_delta = 0
 
         for i in range(len(self.relocatable)):
             for j in range(i + 1, len(self.relocatable)):
@@ -678,13 +680,14 @@ class SimulatedAnnealing(OptimizerBase):
                 if self.restrict_same_row and k1[0] != k2[0]:
                     continue
 
-                self.keyboard.swap_keys(k1, k2)
-                new_effort = self.keyboard.calculate_effort(self.triads)
-                if new_effort < best_effort:
-                    best_effort = new_effort
+                weighted_delta = self.calculate_weighted_delta(k1, k2)
+                self.keyboard.swap_keys(k1, k2)  # restore state
+
+                if weighted_delta < best_delta:
+                    best_delta = weighted_delta
                     best_swap = (k1, k2)
-                self.keyboard.swap_keys(k1, k2) # swap back
-        return best_swap, best_effort
+
+        return best_swap, current_effort + (best_delta / self.total_freq)
 
     def run(self):
         if not self.total_freq: return self.keyboard

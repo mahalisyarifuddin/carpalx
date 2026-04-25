@@ -978,10 +978,10 @@
 					return triads;
 				}
 
-				findBestSwap(triads) {
+				findBestSwap(triads, charToTriads, totalFreq) {
 					const relocatable = this.getRelocatableKeys();
 					let bestSwap = null;
-					let bestEffort = this.calculateEffort(triads);
+					let bestDelta = 0;
 
 					for (let i = 0; i < relocatable.length; i++) {
 						for (let j = i + 1; j < relocatable.length; j++) {
@@ -991,18 +991,18 @@
 							if (this.restrictSameRow && k1[0] !== k2[0])
 								continue;
 
-							this.swapKeys(k1, k2);
-							const newEffort = this.calculateEffort(triads);
-							if (newEffort < bestEffort) {
-								bestEffort = newEffort;
+							const delta = this.calculateWeightedDelta(k1, k2, triads, charToTriads);
+							this.swapKeys(k1, k2); // restore state
+
+							if (delta < bestDelta) {
+								bestDelta = delta;
 								bestSwap = [k1, k2];
 							}
-							this.swapKeys(k1, k2);
 						}
 					}
 					return {
 						bestSwap,
-						bestEffort
+						bestDelta: bestDelta / totalFreq
 					};
 				}
 
@@ -1469,6 +1469,15 @@
 
 				async runPartialOptimization(triads) {
 					const maxSwaps = parseInt(elements.maxSwaps.value) || 10;
+					const charToTriads = this.carpalx.getCharToTriads(triads);
+					let totalFreq = 0;
+					for (let t in triads) {
+						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
+							totalFreq += triads[t];
+						}
+					}
+					if (totalFreq === 0) return;
+
 					let currentEffort = this.carpalx.calculateEffort(triads);
 					this.bestEffort = currentEffort;
 					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
@@ -1478,10 +1487,10 @@
 					elements.temperature.textContent = 'N/A';
 
 					for (let i = 1; i <= maxSwaps && this.optimizing; i++) {
-						const result = this.carpalx.findBestSwap(triads);
+						const result = this.carpalx.findBestSwap(triads, charToTriads, totalFreq);
 						if (result.bestSwap) {
 							this.carpalx.swapKeys(result.bestSwap[0], result.bestSwap[1]);
-							currentEffort = result.bestEffort;
+							currentEffort += result.bestDelta;
 							if (currentEffort < this.bestEffort) {
 								this.bestEffort = currentEffort;
 								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
