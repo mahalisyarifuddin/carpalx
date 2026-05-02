@@ -302,7 +302,7 @@ class Keyboard:
         self.layout_file = layout_file
         self.keys = []
         self.map = {}
-        self.path_cache = {}
+        self.path_cache = []
         self._load_layout(layout_file)
         self._load_effort_model()
 
@@ -382,7 +382,7 @@ class Keyboard:
         self.ff = float(path_cost_conf.get('ff', 0.3))
 
         # Pre-calculate path effort cache
-        self.path_cache = {}
+        self.path_cache = [0.0] * 192
         for h in range(3):
             for r in range(8):
                 for f in range(8):
@@ -390,9 +390,9 @@ class Keyboard:
                     cost = path_cost_conf.get(path_key_str)
                     if cost is not None:
                         if '#' in str(cost): cost = str(cost).split('#')[0]
-                        self.path_cache[(h, r, f)] = self.path_offset + float(cost)
+                        self.path_cache[h * 64 + r * 8 + f] = self.path_offset + float(cost)
                     else:
-                        self.path_cache[(h, r, f)] = self.path_offset + (self.fh * h + self.fr * r + self.ff * f)
+                        self.path_cache[h * 64 + r * 8 + f] = self.path_offset + (self.fh * h + self.fr * r + self.ff * f)
 
         fd_rows = em['finger_distance']['row']
 
@@ -432,13 +432,14 @@ class Keyboard:
         return total_effort / total_triads if total_triads > 0 else 0
 
     def get_triad_effort(self, triad):
-        if len(triad) != 3: return 0
-        c1, c2, c3 = triad
-        if c1 not in self.map or c2 not in self.map or c3 not in self.map: return 0
-
-        k1_obj = self.map[c1]
-        k2_obj = self.map[c2]
-        k3_obj = self.map[c3]
+        # Optimization: Pre-checked length and mapping is assumed for hot paths
+        # but we keep safety for general usage.
+        try:
+            k1_obj = self.map[triad[0]]
+            k2_obj = self.map[triad[1]]
+            k3_obj = self.map[triad[2]]
+        except (KeyError, IndexError):
+            return 0
 
         be1 = k1_obj['effort']['base']
         be2 = k2_obj['effort']['base']
@@ -447,54 +448,54 @@ class Keyboard:
         pe2 = k2_obj['effort']['penalty']
         pe3 = k3_obj['effort']['penalty']
 
-        term_base = self.k1 * be1 * (1 + self.k2 * be2 * (1 + self.k3 * be3))
-        term_penalty = self.k1 * pe1 * (1 + self.k2 * pe2 * (1 + self.k3 * pe3))
+        # Pre-calculating factors to avoid repeated multiplication
+        k2_be2 = self.k2 * be2
+        k2_pe2 = self.k2 * pe2
+
+        term_base = self.k1 * be1 * (1 + k2_be2 + k2_be2 * self.k3 * be3)
+        term_penalty = self.k1 * pe1 * (1 + k2_pe2 + k2_pe2 * self.k3 * pe3)
         triad_effort = self.kb * term_base + self.kp * term_penalty
 
         if self.ks != 0:
-            path_effort = self._calculate_path_effort(k1_obj, k2_obj, k3_obj)
-            triad_effort += self.ks * path_effort
+            triad_effort += self.ks * self._calculate_path_effort(k1_obj, k2_obj, k3_obj, triad)
 
         return triad_effort
 
-    def _calculate_path_effort(self, k1, k2, k3):
+    def _calculate_path_effort(self, k1, k2, k3, triad):
         h1, h2, h3 = k1['hand'], k2['hand'], k3['hand']
         r1, r2, r3 = k1['row'], k2['row'], k3['row']
         f1, f2, f3 = k1['finger'], k2['finger'], k3['finger']
         hand_flag = 0
         if h1 == h3:
-            if h2 == h3: hand_flag = 2
-            else: hand_flag = 1
+            hand_flag = 2 if h2 == h3 else 1
+
         finger_flag = 3
         if f1 > f2:
             if f2 > f3: finger_flag = 0
-            elif f2 == f3: finger_flag = 1 if k2['lc'] == k3['lc'] else 6
+            elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
             elif f3 == f1: finger_flag = 4
             elif f1 > f3 and f3 > f2: finger_flag = 2
         elif f1 < f2:
             if f2 < f3: finger_flag = 0
-            elif f2 == f3: finger_flag = 1 if k2['lc'] == k3['lc'] else 6
+            elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
             elif f3 == f1: finger_flag = 4
             elif f1 < f3 and f3 < f2: finger_flag = 2
         elif f1 == f2:
-            if f2 < f3 or f3 < f1: finger_flag = 1 if k1['lc'] == k2['lc'] else 6
+            if f2 < f3 or f3 < f1: finger_flag = 1 if triad[0] == triad[1] else 6
             elif f2 == f3:
-                if k1['lc'] != k2['lc'] and k2['lc'] != k3['lc'] and k1['lc'] != k3['lc']: finger_flag = 7
+                if triad[0] != triad[1] and triad[1] != triad[2] and triad[0] != triad[2]: finger_flag = 7
                 else: finger_flag = 5
 
         row_flag = 0
-        d12, v12 = abs(r1-r2), r1-r2
-        d13, v13 = abs(r1-r3), r1-r3
-        d23, v23 = abs(r2-r3), r2-r3
-        max_abs = d12
-        val = v12
-        if d13 > max_abs or (d13 == max_abs and v13 < val):
-            max_abs = d13
-            val = v13
-        if d23 > max_abs or (d23 == max_abs and v23 < val):
-            max_abs = d23
-            val = v23
-        drmax_abs, drmax = max_abs, val
+        d12a, v12 = abs(r1-r2), r1-r2
+        d13a, v13 = abs(r1-r3), r1-r3
+        d23a, v23 = abs(r2-r3), r2-r3
+
+        drmax_abs, drmax = d12a, v12
+        if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax):
+            drmax_abs, drmax = d13a, v13
+        if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax):
+            drmax_abs, drmax = d23a, v23
 
         if r1 < r2:
             if r3 == r2: row_flag = 1
@@ -511,7 +512,7 @@ class Keyboard:
             elif r2 < r3: row_flag = 1
             else: row_flag = 0
 
-        return self.path_cache[(hand_flag, row_flag, finger_flag)]
+        return self.path_cache[hand_flag * 64 + row_flag * 8 + finger_flag]
 
     def save(self, filepath):
         with open(filepath, 'w') as f:

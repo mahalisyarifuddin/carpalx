@@ -45,12 +45,11 @@ class Carpalx {
     }
 
     initPathCosts() {
-        this.pathCosts = {};
+        this.pathCosts = new Float64Array(192); // 3 * 8 * 8
         for (let h = 0; h <= 2; h++) {
             for (let r = 0; r <= 7; r++) {
                 for (let f = 0; f <= 7; f++) {
-                    let key = `${h}${r}${f}`;
-                    this.pathCosts[key] = this.fh * h + this.fr * r + this.ff * f;
+                    this.pathCosts[h * 64 + r * 8 + f] = this.fh * h + this.fr * r + this.ff * f;
                 }
             }
         }
@@ -169,14 +168,21 @@ class Carpalx {
             }
 
             let row_flag = 0;
-            let diffs = [
-                { abs: Math.abs(r1 - r2), val: r1 - r2 },
-                { abs: Math.abs(r1 - r3), val: r1 - r3 },
-                { abs: Math.abs(r2 - r3), val: r2 - r3 }
-            ];
-            diffs.sort((a,b)=>(b.abs !== a.abs) ? (b.abs - a.abs) : (a.val - b.val));
-            let drmax_abs = diffs[0].abs;
-            let drmax = diffs[0].val;
+            let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
+            let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
+            let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
+
+            let drmax_abs = d12a;
+            let drmax = v12;
+
+            if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) {
+                drmax_abs = d13a;
+                drmax = v13;
+            }
+            if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) {
+                drmax_abs = d23a;
+                drmax = v23;
+            }
 
             if (r1 < r2) {
                 if (r3 === r2) row_flag = 1;
@@ -194,7 +200,7 @@ class Carpalx {
                 else row_flag = 0;
             }
 
-            let path_cost = this.pathCosts[`${hand_flag}${row_flag}${finger_flag}`] || (this.fh * hand_flag + this.fr * row_flag + this.ff * finger_flag);
+            let path_cost = this.pathCosts[hand_flag * 64 + row_flag * 8 + finger_flag];
             triad_effort += this.ks * (this.path_offset + path_cost);
         }
 
