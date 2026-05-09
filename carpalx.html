@@ -1107,6 +1107,9 @@
 					this.iteration = 0;
 					this.bestEffort = Infinity;
 					this.corpusText = '';
+					this.triads = null;
+					this.charToTriads = null;
+					this.totalFreq = 0;
 
 					this.setup();
 					this.loadState();
@@ -1135,6 +1138,27 @@
 					}
 					);
 					localStorage.setItem('carpalx_state', JSON.stringify(state));
+				}
+
+				updateCorpusCache(forceTriads = false) {
+					if (!this.corpusText) {
+						this.triads = null;
+						this.charToTriads = null;
+						this.totalFreq = 0;
+						return;
+					}
+
+					if (forceTriads || !this.triads) {
+						this.triads = this.carpalx.getTriads(this.corpusText);
+						this.charToTriads = this.carpalx.getCharToTriads(this.triads);
+					}
+
+					this.totalFreq = 0;
+					for (let t in this.triads) {
+						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
+							this.totalFreq += this.triads[t];
+						}
+					}
 				}
 
 				loadState() {
@@ -1326,6 +1350,7 @@
 				changeBaseLayout() {
 					const layout = elements.baseLayoutSelect.value;
 					this.carpalx.initKeyboard(layout);
+					this.updateCorpusCache();
 					this.syncParameters();
 					this.renderKeyboard();
 					this.updateEffort();
@@ -1337,6 +1362,7 @@
 						return;
 					this.currentFileName = file.name;
 					this.corpusText = await file.text();
+					this.updateCorpusCache(true);
 					this.updateFileNameDisplay();
 					this.updateEffort();
 				}
@@ -1431,12 +1457,11 @@
 				}
 
 				updateEffort() {
-					if (!this.corpusText) {
+					if (!this.corpusText || !this.triads) {
 						elements.totalEffort.textContent = '0.000000';
 						return 0;
 					}
-					const triads = this.carpalx.getTriads(this.corpusText);
-					const effort = this.carpalx.calculateEffort(triads);
+					const effort = this.carpalx.calculateEffort(this.triads);
 					elements.totalEffort.textContent = effort.toFixed(6);
 					return effort;
 				}
@@ -1448,19 +1473,18 @@
 						return;
 					}
 
-					if (!this.corpusText)
+					if (!this.corpusText || !this.triads)
 						return;
-					const triads = this.carpalx.getTriads(this.corpusText);
 
 					this.optimizing = true;
 					elements.optimizeBtn.textContent = this.string('optimizing');
 
 					if (elements.optModeSelect.value === 'partial') {
-						await this.runPartialOptimization(triads);
+						await this.runPartialOptimization(this.triads);
 					} else if (elements.optModeSelect.value === 'lahc') {
-						await this.runLahcOptimization(triads);
+						await this.runLahcOptimization(this.triads);
 					} else {
-						await this.runFullOptimization(triads);
+						await this.runFullOptimization(this.triads);
 					}
 
 					this.optimizing = false;
@@ -1470,13 +1494,8 @@
 
 				async runPartialOptimization(triads) {
 					const maxSwaps = parseInt(elements.maxSwaps.value) || 10;
-					const charToTriads = this.carpalx.getCharToTriads(triads);
-					let totalFreq = 0;
-					for (let t in triads) {
-						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
-							totalFreq += triads[t];
-						}
-					}
+					const charToTriads = this.charToTriads;
+					const totalFreq = this.totalFreq;
 					if (totalFreq === 0) return;
 
 					let currentEffort = this.carpalx.calculateEffort(triads);
@@ -1533,13 +1552,8 @@
 					if (relocatable.length < 2)
 						return;
 
-					const charToTriads = this.carpalx.getCharToTriads(triads);
-					let totalFreq = 0;
-					for (let t in triads) {
-						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
-							totalFreq += triads[t];
-						}
-					}
+					const charToTriads = this.charToTriads;
+					const totalFreq = this.totalFreq;
 
 					let currentEffort = this.carpalx.calculateEffort(triads);
 					let currentWeightedEffort = currentEffort * totalFreq;
@@ -1624,13 +1638,8 @@
 					const relocatable = this.carpalx.getRelocatableKeys();
 					if (relocatable.length < 2) return;
 
-					const charToTriads = this.carpalx.getCharToTriads(triads);
-					let totalFreq = 0;
-					for (let t in triads) {
-						if (t.length === 3 && this.carpalx.map[t[0]] && this.carpalx.map[t[1]] && this.carpalx.map[t[2]]) {
-							totalFreq += triads[t];
-						}
-					}
+					const charToTriads = this.charToTriads;
+					const totalFreq = this.totalFreq;
 
 					let currentEffort = this.carpalx.calculateEffort(triads);
 					let currentWeightedEffort = currentEffort * totalFreq;
@@ -1742,6 +1751,7 @@
 					this.optimizing = false;
 					const layout = elements.baseLayoutSelect.value;
 					this.carpalx.initKeyboard(layout);
+					this.updateCorpusCache();
 					this.renderKeyboard();
 					this.updateEffort();
 					elements.iterations.textContent = '0';

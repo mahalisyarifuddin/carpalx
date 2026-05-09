@@ -7,3 +7,8 @@
 **Mode:** Bolt
 **Learning:** In both JavaScript and Python, the triad effort calculation is a critical hot path. In JavaScript, using `Array.sort()` to find the maximum row difference and using string-concatenated keys for `pathCosts` lookups were major bottlenecks. Replacing them with direct logical comparisons and `Float64Array` with numeric indexing (`h*64 + r*8 + f`) yielded a ~5.7x speedup. In Python, switching from dictionary lookups with tuple keys to a flat list with the same numeric indexing scheme provided a ~20% performance improvement.
 **Action:** Avoid generic utility functions (like sort) and non-primitive lookups in hot loops. Use typed arrays or flat lists with pre-calculated numeric indices for multi-dimensional data access.
+
+## 2026-05-09 - [Corpus Caching in CarpalxApp]
+**Mode:** Bolt
+**Learning:** In the standalone web application (`carpalx.html`), extracting triads from a large training corpus is a significant O(N) bottleneck. Re-parsing the corpus on every parameter change or at the start of every optimization run causes noticeable UI lag. Implementing a lazy-loading cache for triads, the `charToTriads` inverse index, and `totalFreq` significantly improves responsiveness.
+**Action:** Use a dedicated cache update method (like `updateCorpusCache`) that distinguishes between corpus-static data (triads) and keyboard-dependent data (totalFreq) to minimize redundant processing.
