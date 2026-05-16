@@ -403,6 +403,9 @@
 								<option value="qwerty">QWERTY</option>
 								<option value="qwertz">QWERTZ</option>
 								<option value="azerty">AZERTY</option>
+								<option value="colemak">Colemak</option>
+								<option value="dvorak">Dvorak</option>
+								<option value="workman">Workman</option>
 							</select>
 						</div>
 						<div class="group">
@@ -617,7 +620,10 @@
 					this.layouts = {
 						qwerty: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"], ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""], ["z", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]],
 						qwertz: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["q", "w", "e", "r", "t", "z", "u", "i", "o", "p", "[{", "]}", "\\|"], ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";:", "'\""], ["y", "x", "c", "v", "b", "n", "m", ",<", ".>", "/?"]],
-						azerty: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"], ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m", "'\""], ["w", "x", "c", "v", "b", "n", ",<", ".>", "/?", ";:"]]
+						azerty: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p", "[{", "]}", "\\|"], ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m", "'\""], ["w", "x", "c", "v", "b", "n", ",<", ".>", "/?", ";:"]],
+						colemak: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["q", "w", "f", "p", "g", "j", "l", "u", "y", ";:", "[{", "]}", "\\|"], ["a", "r", "s", "t", "d", "h", "n", "e", "i", "o", "'\""], ["z", "x", "c", "v", "b", "k", "m", ",<", ".>", "/?"]],
+						dvorak: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "[{", "]}"], ["'\"", ",<", ".>", "p", "y", "f", "g", "c", "r", "l", "/?", "=+", "\\|"], ["a", "o", "e", "u", "i", "d", "h", "t", "n", "s", "-_"], [";:", "q", "j", "k", "x", "b", "m", "w", "v", "z"]],
+						workman: [["`~", "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)", "-_", "=+"], ["q", "d", "r", "w", "b", "j", "f", "u", "p", ";:", "[{", "]}", "\\|"], ["a", "s", "h", "t", "g", "y", "n", "e", "o", "i", "'\""], ["z", "x", "m", "c", "v", "k", "l", ",<", ".>", "/?"]]
 					};
 					this.initialLayout = this.layouts.qwerty;
 					this.restrictSameRow = false;
@@ -1068,7 +1074,13 @@
 					optModeLabel: 'Mode',
 					resetParamsBtn: 'Reset Params',
 					baseLayoutLabel: 'Base Layout',
-					restrictSameRowLabel: 'Restrict to Same Row'
+					restrictSameRowLabel: 'Restrict to Same Row',
+					qwerty: 'QWERTY',
+					qwertz: 'QWERTZ',
+					azerty: 'AZERTY',
+					colemak: 'Colemak',
+					dvorak: 'Dvorak',
+					workman: 'Workman'
 				},
 				id: {
 					title: 'Optimasi Keyboard Carpalx',
@@ -1093,7 +1105,13 @@
 					optModeLabel: 'Mode',
 					resetParamsBtn: 'Reset Parameter',
 					baseLayoutLabel: 'Tata Letak Dasar',
-					restrictSameRowLabel: 'Batasi ke Baris yang Sama'
+					restrictSameRowLabel: 'Batasi ke Baris yang Sama',
+					qwerty: 'QWERTY',
+					qwertz: 'QWERTZ',
+					azerty: 'AZERTY',
+					colemak: 'Colemak',
+					dvorak: 'Dvorak',
+					workman: 'Workman'
 				}
 			};
 			const elements = new Proxy({},{
@@ -1387,6 +1405,7 @@
 					}
 					);
 					[...elements.theme.options].forEach(option=>option.textContent = this.string(option.value + 'Theme'));
+					[...elements.baseLayoutSelect.options].forEach(option=>option.textContent = this.string(option.value));
 					elements.optimizeBtn.textContent = this.string(this.optimizing ? 'optimizing' : 'optimizeBtn');
 					this.updateFileNameDisplay();
 				}
