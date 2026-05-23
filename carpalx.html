@@ -574,6 +574,10 @@
 					<div id="totalEffort" class="stat-val">0.000000</div>
 				</div>
 				<div class="stat-card">
+					<div id="bestEffortLabel" class="stat-label"></div>
+					<div id="bestEffortDisplay" class="stat-val">0.000000</div>
+				</div>
+				<div class="stat-card">
 					<div id="iterationsLabel" class="stat-label"></div>
 					<div id="iterations" class="stat-val">0</div>
 				</div>
@@ -1061,6 +1065,7 @@
 					optimizeBtn: 'Start Optimization',
 					resetBtn: 'Reset Layout',
 					effortLabel: 'Typing Effort',
+					bestEffortLabel: 'Best Effort',
 					iterationsLabel: 'Iterations / Swaps',
 					tempLabel: 'Temperature',
 					optimizing: 'Stop Optimization',
@@ -1092,6 +1097,7 @@
 					optimizeBtn: 'Mulai Optimasi',
 					resetBtn: 'Reset Tata Letak',
 					effortLabel: 'Upaya Pengetikan',
+					bestEffortLabel: 'Upaya Terbaik',
 					iterationsLabel: 'Iterasi / Pertukaran',
 					tempLabel: 'Suhu',
 					optimizing: 'Hentikan Optimasi',
@@ -1198,8 +1204,6 @@
 								elements.maxIterations.value = state.maxIterations;
 							if (state.maxSwaps)
 								elements.maxSwaps.value = state.maxSwaps;
-							if (state.mask)
-								this.carpalx.mask = state.mask;
 
 							if (state.penalties) {
 								Object.keys(state.penalties).forEach(id=>{
@@ -1210,6 +1214,8 @@
 							}
 
 							this.carpalx.initKeyboard(elements.baseLayoutSelect.value);
+							if (state.mask)
+								this.carpalx.mask = state.mask;
 							this.carpalx.restrictSameRow = elements.restrictSameRow.checked;
 							this.updateModeUI();
 							this.syncParameters();
@@ -1478,10 +1484,15 @@
 				updateEffort() {
 					if (!this.corpusText || !this.triads) {
 						elements.totalEffort.textContent = '0.000000';
+						elements.bestEffortDisplay.textContent = '0.000000';
 						return 0;
 					}
 					const effort = this.carpalx.calculateEffort(this.triads);
 					elements.totalEffort.textContent = effort.toFixed(6);
+					if (!this.optimizing) {
+						this.bestEffort = effort;
+						elements.bestEffortDisplay.textContent = effort.toFixed(6);
+					}
 					return effort;
 				}
 
@@ -1497,6 +1508,7 @@
 
 					this.optimizing = true;
 					elements.optimizeBtn.textContent = this.string('optimizing');
+					elements.iterations.textContent = '0';
 
 					if (elements.optModeSelect.value === 'partial') {
 						await this.runPartialOptimization(this.triads);
@@ -1519,6 +1531,7 @@
 
 					let currentEffort = this.carpalx.calculateEffort(triads);
 					this.bestEffort = currentEffort;
+					elements.bestEffortDisplay.textContent = currentEffort.toFixed(6);
 					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
 						lc: k.lc,
 						uc: k.uc
@@ -1532,6 +1545,7 @@
 							currentEffort += result.bestDelta;
 							if (currentEffort < this.bestEffort) {
 								this.bestEffort = currentEffort;
+								elements.bestEffortDisplay.textContent = currentEffort.toFixed(6);
 								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
 									lc: k.lc,
 									uc: k.uc
@@ -1577,6 +1591,7 @@
 					let currentEffort = this.carpalx.calculateEffort(triads);
 					let currentWeightedEffort = currentEffort * totalFreq;
 					this.bestEffort = currentEffort;
+					elements.bestEffortDisplay.textContent = currentEffort.toFixed(6);
 					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
 						lc: k.lc,
 						uc: k.uc
@@ -1617,6 +1632,7 @@
 							currentEffort = currentWeightedEffort / totalFreq;
 							if (currentEffort < this.bestEffort) {
 								this.bestEffort = currentEffort;
+								elements.bestEffortDisplay.textContent = currentEffort.toFixed(6);
 								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
 									lc: k.lc,
 									uc: k.uc
@@ -1665,6 +1681,7 @@
 					let history = new Array(historySize).fill(currentWeightedEffort);
 
 					this.bestEffort = currentEffort;
+					elements.bestEffortDisplay.textContent = currentEffort.toFixed(6);
 					let bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
 						lc: k.lc,
 						uc: k.uc
@@ -1696,6 +1713,7 @@
 							currentEffort = currentWeightedEffort / totalFreq;
 							if (currentEffort < this.bestEffort) {
 								this.bestEffort = currentEffort;
+								elements.bestEffortDisplay.textContent = currentEffort.toFixed(6);
 								bestLayout = this.carpalx.keys.map(row=>row.map(k=>({
 									lc: k.lc,
 									uc: k.uc
