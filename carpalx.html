@@ -19,6 +19,11 @@
 				--danger: #ba1a1a;
 				--on-danger: #ffffff;
 				--highlight-bg: #d4e3ff;
+				--f-pinky: #ffadad;
+				--f-ring: #ffd6a5;
+				--f-middle: #fdffb6;
+				--f-index: #caffbf;
+				--f-thumb: #9bf6ff;
 			}
 
 			@media (prefers-color-scheme: dark) {
@@ -36,6 +41,11 @@
 					--danger: #ffb4ab;
 					--on-danger: #93000a;
 					--highlight-bg: #001c3a;
+					--f-pinky: #5c3c3c;
+					--f-ring: #5c4d3c;
+					--f-middle: #5c5c3c;
+					--f-index: #3c5c3c;
+					--f-thumb: #3c5c5c;
 				}
 			}
 
@@ -53,6 +63,11 @@
 				--danger: #ffb4ab;
 				--on-danger: #93000a;
 				--highlight-bg: #001c3a;
+				--f-pinky: #5c3c3c;
+				--f-ring: #5c4d3c;
+				--f-middle: #5c5c3c;
+				--f-index: #3c5c3c;
+				--f-thumb: #3c5c5c;
 			}
 
 			* {
@@ -280,6 +295,20 @@
 				background: var(--highlight-bg);
 				border-color: var(--primary);
 			}
+
+			.key:hover {
+				filter: brightness(0.95);
+			}
+
+			.key:active {
+				transform: translateY(1px);
+			}
+
+			.f0, .f9 { background: var(--f-pinky) !important; }
+			.f1, .f8 { background: var(--f-ring) !important; }
+			.f2, .f7 { background: var(--f-middle) !important; }
+			.f3, .f6 { background: var(--f-index) !important; }
+			.f4, .f5 { background: var(--f-thumb) !important; }
 
 			.stats {
 				margin-top: 1rem;
@@ -1462,7 +1491,7 @@
 						row.forEach((key,c)=>{
 							const keyEl = document.createElement('div');
 							const isRelocatable = this.carpalx.mask[r][c];
-							keyEl.className = 'key' + (isRelocatable ? ' relocatable' : '');
+							keyEl.className = `key f${key.finger}${isRelocatable ? ' relocatable' : ''}`;
 							keyEl.innerHTML = `<span class="uc">${key.uc}</span>` + `<span class="lc">${key.lc}</span>`;
 							keyEl.onclick = (e)=>{
 								e.preventDefault();

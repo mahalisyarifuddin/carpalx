@@ -557,6 +557,13 @@ class Keyboard:
 
         # Standard Carpalx/keyboard stagger
         stagger_units = [0, 1, 1.25, 1.75]
+        finger_colors = {
+            0: '#ffadad', 9: '#ffadad', # Pinky
+            1: '#ffd6a5', 8: '#ffd6a5', # Ring
+            2: '#fdffb6', 7: '#fdffb6', # Middle
+            3: '#caffbf', 6: '#caffbf', # Index
+            4: '#9bf6ff', 5: '#9bf6ff'  # Thumb
+        }
 
         for r_idx, row in enumerate(self.keys):
             stagger = stagger_units[r_idx] if r_idx < len(stagger_units) else 0
@@ -565,7 +572,8 @@ class Keyboard:
                 x = c + stagger
                 y = -r
 
-                rect = patches.Rectangle((x, y-0.9), 0.9, 0.9, linewidth=1, edgecolor='black', facecolor='white')
+                f_color = finger_colors.get(k['finger'], 'white')
+                rect = patches.Rectangle((x, y-0.9), 0.9, 0.9, linewidth=1, edgecolor='black', facecolor=f_color)
                 ax.add_patch(rect)
                 ax.text(x + 0.45, y - 0.45, k['uc'], ha='center', va='center', fontsize=10, fontweight='bold')
 
