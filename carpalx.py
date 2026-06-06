@@ -419,6 +419,14 @@ class Keyboard:
                         total_penalty = self.base_penalty + self.w_hand * p_hand + self.w_row * p_row + self.w_finger * p_finger
                         key['effort']['penalty'] = total_penalty
                         key['effort']['total'] = self.kb * base_effort + self.kp * total_penalty
+
+                        # Pre-calculate weighted components for triad effort
+                        key['effort']['v1_be'] = self.kb * self.k1 * base_effort
+                        key['effort']['v2_be'] = self.k2 * base_effort
+                        key['effort']['v3_be'] = self.k3 * base_effort
+                        key['effort']['v1_pe'] = self.kp * self.k1 * total_penalty
+                        key['effort']['v2_pe'] = self.k2 * total_penalty
+                        key['effort']['v3_pe'] = self.k3 * total_penalty
                     else:
                         print(f"Warning: No effort defined for key at {r},{c}")
 
@@ -441,20 +449,10 @@ class Keyboard:
         except (KeyError, IndexError):
             return 0
 
-        be1 = k1_obj['effort']['base']
-        be2 = k2_obj['effort']['base']
-        be3 = k3_obj['effort']['base']
-        pe1 = k1_obj['effort']['penalty']
-        pe2 = k2_obj['effort']['penalty']
-        pe3 = k3_obj['effort']['penalty']
+        e1, e2, e3 = k1_obj['effort'], k2_obj['effort'], k3_obj['effort']
 
-        # Pre-calculating factors to avoid repeated multiplication
-        k2_be2 = self.k2 * be2
-        k2_pe2 = self.k2 * pe2
-
-        term_base = self.k1 * be1 * (1 + k2_be2 + k2_be2 * self.k3 * be3)
-        term_penalty = self.k1 * pe1 * (1 + k2_pe2 + k2_pe2 * self.k3 * pe3)
-        triad_effort = self.kb * term_base + self.kp * term_penalty
+        triad_effort = e1['v1_be'] * (1 + e2['v2_be'] * (1 + e3['v3_be'])) + \
+                       e1['v1_pe'] * (1 + e2['v2_pe'] * (1 + e3['v3_pe']))
 
         if self.ks != 0:
             triad_effort += self.ks * self._calculate_path_effort(k1_obj, k2_obj, k3_obj, triad)
@@ -487,26 +485,30 @@ class Keyboard:
                 else: finger_flag = 5
 
         row_flag = 0
-        d12a, v12 = abs(r1-r2), r1-r2
-        d13a, v13 = abs(r1-r3), r1-r3
-        d23a, v23 = abs(r2-r3), r2-r3
-
-        drmax_abs, drmax = d12a, v12
-        if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax):
-            drmax_abs, drmax = d13a, v13
-        if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax):
-            drmax_abs, drmax = d23a, v23
-
         if r1 < r2:
             if r3 == r2: row_flag = 1
             elif r2 < r3: row_flag = 4
-            elif drmax_abs == 1: row_flag = 3
-            else: row_flag = 7 if drmax < 0 else 5
+            else:
+                d12a, v12 = abs(r1-r2), r1-r2
+                d13a, v13 = abs(r1-r3), r1-r3
+                d23a, v23 = abs(r2-r3), r2-r3
+                drmax_abs, drmax = d12a, v12
+                if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
+                if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
+                if drmax_abs == 1: row_flag = 3
+                else: row_flag = 7 if drmax < 0 else 5
         elif r1 > r2:
             if r3 == r2: row_flag = 2
             elif r2 > r3: row_flag = 6
-            elif drmax_abs == 1: row_flag = 3
-            else: row_flag = 7 if drmax < 0 else 5
+            else:
+                d12a, v12 = abs(r1-r2), r1-r2
+                d13a, v13 = abs(r1-r3), r1-r3
+                d23a, v23 = abs(r2-r3), r2-r3
+                drmax_abs, drmax = d12a, v12
+                if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
+                if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
+                if drmax_abs == 1: row_flag = 3
+                else: row_flag = 7 if drmax < 0 else 5
         else:
             if r2 > r3: row_flag = 2
             elif r2 < r3: row_flag = 1
@@ -631,6 +633,9 @@ class OptimizerBase:
         self.iterations = int(self.params.get('iterations', 1000))
         self.restrict_same_row = self.params.get('restrict_same_row') in ['yes', '1', 1, True]
         self.relocatable = self._get_relocatable_keys()
+        self.relocatable_by_row = defaultdict(list)
+        for r, c in self.relocatable:
+            self.relocatable_by_row[r].append((r, c))
         self.history = []
 
         # Incremental update support
@@ -658,8 +663,11 @@ class OptimizerBase:
         char2 = self.keyboard.keys[k2[0]][k2[1]]['lc']
         char2_uc = self.keyboard.keys[k2[0]][k2[1]]['uc']
 
-        affected_triads = set(self.char_to_triads[char1]) | set(self.char_to_triads[char1_uc]) | \
-                          set(self.char_to_triads[char2]) | set(self.char_to_triads[char2_uc])
+        affected_triads = set(self.char_to_triads[char1]).union(
+            self.char_to_triads[char1_uc],
+            self.char_to_triads[char2],
+            self.char_to_triads[char2_uc]
+        )
 
         effort_before = sum(self.keyboard.get_triad_effort(t) * self.triads[t] for t in affected_triads)
         self.keyboard.swap_keys(k1, k2)
@@ -710,9 +718,10 @@ class SimulatedAnnealing(OptimizerBase):
             if not self.relocatable: break
             k1 = random.choice(self.relocatable)
             if self.restrict_same_row:
-                same_row = [rk for rk in self.relocatable if rk[0] == k1[0] and rk != k1]
-                if not same_row: continue
+                same_row = self.relocatable_by_row[k1[0]]
+                if len(same_row) < 2: continue
                 k2 = random.choice(same_row)
+                while k1 == k2: k2 = random.choice(same_row)
             else:
                 k2 = random.choice(self.relocatable)
                 while k1 == k2: k2 = random.choice(self.relocatable)
@@ -762,9 +771,10 @@ class LateAcceptanceHillClimbing(OptimizerBase):
             if not self.relocatable: break
             k1 = random.choice(self.relocatable)
             if self.restrict_same_row:
-                same_row = [rk for rk in self.relocatable if rk[0] == k1[0] and rk != k1]
-                if not same_row: continue
+                same_row = self.relocatable_by_row[k1[0]]
+                if len(same_row) < 2: continue
                 k2 = random.choice(same_row)
+                while k1 == k2: k2 = random.choice(same_row)
             else:
                 k2 = random.choice(self.relocatable)
                 while k1 == k2: k2 = random.choice(self.relocatable)

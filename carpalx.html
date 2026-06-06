@@ -744,6 +744,14 @@
 					key.effort.base = baseEffort;
 					key.effort.penalty = penaltyEffort;
 					key.effort.total = this.kb * baseEffort + this.kp * penaltyEffort;
+
+					// Pre-calculate weighted components for triad effort
+					key.effort.v1_be = this.kb * this.k1 * baseEffort;
+					key.effort.v2_be = this.k2 * baseEffort;
+					key.effort.v3_be = this.k3 * baseEffort;
+					key.effort.v1_pe = this.kp * this.k1 * penaltyEffort;
+					key.effort.v2_pe = this.k2 * penaltyEffort;
+					key.effort.v3_pe = this.k3 * penaltyEffort;
 				}
 
 				updateParameters(params) {
@@ -817,14 +825,9 @@
 					  , k2 = this.map[c2]
 					  , k3 = this.map[c3];
 
-					let be1 = k1.effort.base
-					  , be2 = k2.effort.base
-					  , be3 = k3.effort.base;
-					let pe1 = k1.effort.penalty
-					  , pe2 = k2.effort.penalty
-					  , pe3 = k3.effort.penalty;
+					let e1 = k1.effort, e2 = k2.effort, e3 = k3.effort;
 
-					let triad_effort = this.kb * this.k1 * be1 * (1 + this.k2 * be2 * (1 + this.k3 * be3)) + this.kp * this.k1 * pe1 * (1 + this.k2 * pe2 * (1 + this.k3 * pe3));
+					let triad_effort = e1.v1_be * (1 + e2.v2_be * (1 + e3.v3_be)) + e1.v1_pe * (1 + e2.v2_pe * (1 + e3.v3_pe));
 
 					if (this.ks !== 0) {
 						let h1 = k1.hand
@@ -877,40 +880,36 @@
 						}
 
 						let row_flag = 0;
-						let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
-						let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
-						let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
-
-						let drmax_abs = d12a;
-						let drmax = v12;
-
-						if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) {
-							drmax_abs = d13a;
-							drmax = v13;
-						}
-						if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) {
-							drmax_abs = d23a;
-							drmax = v23;
-						}
-
 						if (r1 < r2) {
 							if (r3 === r2)
 								row_flag = 1;
 							else if (r2 < r3)
 								row_flag = 4;
-							else if (drmax_abs === 1)
-								row_flag = 3;
-							else
-								row_flag = (drmax < 0) ? 7 : 5;
+							else {
+								let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
+								let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
+								let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
+								let drmax_abs = d12a, drmax = v12;
+								if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) { drmax_abs = d13a; drmax = v13; }
+								if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) { drmax_abs = d23a; drmax = v23; }
+								if (drmax_abs === 1) row_flag = 3;
+								else row_flag = (drmax < 0) ? 7 : 5;
+							}
 						} else if (r1 > r2) {
 							if (r3 === r2)
 								row_flag = 2;
 							else if (r2 > r3)
 								row_flag = 6;
-							else if (drmax_abs === 1)
-								row_flag = 3;
-							else
-								row_flag = (drmax < 0) ? 7 : 5;
+							else {
+								let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
+								let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
+								let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
+								let drmax_abs = d12a, drmax = v12;
+								if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) { drmax_abs = d13a; drmax = v13; }
+								if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) { drmax_abs = d23a; drmax = v23; }
+								if (drmax_abs === 1) row_flag = 3;
+								else row_flag = (drmax < 0) ? 7 : 5;
+							}
 						} else {
 							if (r2 > r3)
 								row_flag = 2;
@@ -944,12 +943,11 @@
 					const char2 = this.keys[k2[0]][k2[1]].lc;
 					const char2_uc = this.keys[k2[0]][k2[1]].uc;
 
-					const affectedTriads = new Set([
-						...(charToTriads[char1] || []),
-						...(charToTriads[char1_uc] || []),
-						...(charToTriads[char2] || []),
-						...(charToTriads[char2_uc] || [])
-					]);
+					const affectedTriads = new Set();
+					(charToTriads[char1] || []).forEach(t=>affectedTriads.add(t));
+					(charToTriads[char1_uc] || []).forEach(t=>affectedTriads.add(t));
+					(charToTriads[char2] || []).forEach(t=>affectedTriads.add(t));
+					(charToTriads[char2_uc] || []).forEach(t=>affectedTriads.add(t));
 
 					let effortBefore = 0;
 					affectedTriads.forEach(t => {
@@ -1626,16 +1624,25 @@
 						uc: k.uc
 					})));
 
+					const relocatableByRow = {};
+					if (this.carpalx.restrictSameRow) {
+						relocatable.forEach(rk => {
+							if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
+							relocatableByRow[rk[0]].push(rk);
+						});
+					}
+
 					for (let i = 1; i <= maxIterations && this.optimizing; i++) {
 						const k1_idx = Math.floor(Math.random() * relocatable.length);
 						const k1 = relocatable[k1_idx];
 						let k2;
 
 						if (this.carpalx.restrictSameRow) {
-							const sameRowKeys = relocatable.filter(rk=>rk[0] === k1[0] && (rk[0] !== k1[0] || rk[1] !== k1[1]));
-							if (sameRowKeys.length === 0)
-								continue;
+							const sameRowKeys = relocatableByRow[k1[0]];
+							if (sameRowKeys.length < 2) continue;
 							k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
+							while (k1[0] === k2[0] && k1[1] === k2[1])
+								k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
 						} else {
 							let k2_idx = Math.floor(Math.random() * relocatable.length);
 							while (k1_idx === k2_idx)
@@ -1718,15 +1725,25 @@
 
 					elements.temperature.textContent = 'N/A';
 
+					const relocatableByRow = {};
+					if (this.carpalx.restrictSameRow) {
+						relocatable.forEach(rk => {
+							if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
+							relocatableByRow[rk[0]].push(rk);
+						});
+					}
+
 					for (let i = 1; i <= maxIterations && this.optimizing; i++) {
 						const k1_idx = Math.floor(Math.random() * relocatable.length);
 						const k1 = relocatable[k1_idx];
 						let k2;
 
 						if (this.carpalx.restrictSameRow) {
-							const sameRowKeys = relocatable.filter(rk=>rk[0] === k1[0] && (rk[0] !== k1[0] || rk[1] !== k1[1]));
-							if (sameRowKeys.length === 0) continue;
+							const sameRowKeys = relocatableByRow[k1[0]];
+							if (sameRowKeys.length < 2) continue;
 							k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
+							while (k1[0] === k2[0] && k1[1] === k2[1])
+								k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
 						} else {
 							let k2_idx = Math.floor(Math.random() * relocatable.length);
 							while (k1_idx === k2_idx) k2_idx = Math.floor(Math.random() * relocatable.length);
