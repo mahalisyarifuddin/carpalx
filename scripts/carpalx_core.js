@@ -114,6 +114,14 @@ class Carpalx {
         key.effort.base = baseEffort;
         key.effort.penalty = penaltyEffort;
         key.effort.total = this.kb * baseEffort + this.kp * penaltyEffort;
+
+        // Pre-calculate weighted components for triad effort
+        key.effort.v1_be = this.kb * this.k1 * baseEffort;
+        key.effort.v2_be = this.k2 * baseEffort;
+        key.effort.v3_be = this.k3 * baseEffort;
+        key.effort.v1_pe = this.kp * this.k1 * penaltyEffort;
+        key.effort.v2_pe = this.k2 * penaltyEffort;
+        key.effort.v3_pe = this.k3 * penaltyEffort;
     }
 
     calculateEffort(triads) {
@@ -133,11 +141,10 @@ class Carpalx {
         let c1 = triad[0], c2 = triad[1], c3 = triad[2];
         let k1 = this.map[c1], k2 = this.map[c2], k3 = this.map[c3];
 
-        let be1 = k1.effort.base, be2 = k2.effort.base, be3 = k3.effort.base;
-        let pe1 = k1.effort.penalty, pe2 = k2.effort.penalty, pe3 = k3.effort.penalty;
+        let e1 = k1.effort, e2 = k2.effort, e3 = k3.effort;
 
-        let triad_effort = this.kb * this.k1 * be1 * (1 + this.k2 * be2 * (1 + this.k3 * be3)) +
-                           this.kp * this.k1 * pe1 * (1 + this.k2 * pe2 * (1 + this.k3 * pe3));
+        let triad_effort = e1.v1_be * (1 + e2.v2_be * (1 + e3.v3_be)) +
+                           e1.v1_pe * (1 + e2.v2_pe * (1 + e3.v3_pe));
 
         if (this.ks !== 0) {
             let h1 = k1.hand, h2 = k2.hand, h3 = k3.hand;
@@ -171,32 +178,34 @@ class Carpalx {
             }
 
             let row_flag = 0;
-            let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
-            let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
-            let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
-
-            let drmax_abs = d12a;
-            let drmax = v12;
-
-            if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) {
-                drmax_abs = d13a;
-                drmax = v13;
-            }
-            if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) {
-                drmax_abs = d23a;
-                drmax = v23;
-            }
-
             if (r1 < r2) {
                 if (r3 === r2) row_flag = 1;
                 else if (r2 < r3) row_flag = 4;
-                else if (drmax_abs === 1) row_flag = 3;
-                else row_flag = (drmax < 0) ? 7 : 5;
+                else {
+                    let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
+                    let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
+                    let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
+                    let drmax_abs = d12a, drmax = v12;
+                    if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) { drmax_abs = d13a; drmax = v13; }
+                    if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) { drmax_abs = d23a; drmax = v23; }
+
+                    if (drmax_abs === 1) row_flag = 3;
+                    else row_flag = (drmax < 0) ? 7 : 5;
+                }
             } else if (r1 > r2) {
                 if (r3 === r2) row_flag = 2;
                 else if (r2 > r3) row_flag = 6;
-                else if (drmax_abs === 1) row_flag = 3;
-                else row_flag = (drmax < 0) ? 7 : 5;
+                else {
+                    let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
+                    let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
+                    let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
+                    let drmax_abs = d12a, drmax = v12;
+                    if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) { drmax_abs = d13a; drmax = v13; }
+                    if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) { drmax_abs = d23a; drmax = v23; }
+
+                    if (drmax_abs === 1) row_flag = 3;
+                    else row_flag = (drmax < 0) ? 7 : 5;
+                }
             } else {
                 if (r2 > r3) row_flag = 2;
                 else if (r2 < r3) row_flag = 1;
