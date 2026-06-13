@@ -674,7 +674,7 @@
 					for (let h = 0; h <= 2; h++) {
 						for (let r = 0; r <= 7; r++) {
 							for (let f = 0; f <= 7; f++) {
-								this.pathCosts[h * 64 + r * 8 + f] = this.fh * h + this.fr * r + this.ff * f;
+								this.pathCosts[h * 64 + r * 8 + f] = this.ks * (this.path_offset + (this.fh * h + this.fr * r + this.ff * f));
 							}
 						}
 					}
@@ -919,8 +919,7 @@
 								row_flag = 0;
 						}
 
-						let path_cost = this.pathCosts[hand_flag * 64 + row_flag * 8 + finger_flag];
-						triad_effort += this.ks * (this.path_offset + path_cost);
+						triad_effort += this.pathCosts[hand_flag * 64 + row_flag * 8 + finger_flag];
 					}
 
 					return triad_effort;
@@ -983,9 +982,6 @@
 					this.map[key1.uc] = key1;
 					this.map[key2.lc] = key2;
 					this.map[key2.uc] = key2;
-
-					this.calculateKeyEffort(key1);
-					this.calculateKeyEffort(key2);
 				}
 
 				getRelocatableKeys() {

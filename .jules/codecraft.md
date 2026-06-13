@@ -12,3 +12,8 @@
 **Mode:** Bolt
 **Learning:** In the standalone web application (`carpalx.html`), extracting triads from a large training corpus is a significant O(N) bottleneck. Re-parsing the corpus on every parameter change or at the start of every optimization run causes noticeable UI lag. Implementing a lazy-loading cache for triads, the `charToTriads` inverse index, and `totalFreq` significantly improves responsiveness.
 **Action:** Use a dedicated cache update method (like `updateCorpusCache`) that distinguishes between corpus-static data (triads) and keyboard-dependent data (totalFreq) to minimize redundant processing.
+
+## 2026-06-13 - [Path Cost Pre-calculation in Hot Path]
+**Mode:** Bolt
+**Learning:** In the triad effort calculation, multiplying by `ks` and adding `path_offset` for every triad in every iteration is redundant. By folding these operations into the pre-calculated `pathCosts`/`path_cache` array, we eliminate two arithmetic operations from the innermost hot loop of the optimization algorithms across all implementations.
+**Action:** Identify constant-weighted components in hot loops and fold them into pre-calculated look-up tables to minimize per-iteration arithmetic.

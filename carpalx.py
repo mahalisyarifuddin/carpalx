@@ -390,9 +390,9 @@ class Keyboard:
                     cost = path_cost_conf.get(path_key_str)
                     if cost is not None:
                         if '#' in str(cost): cost = str(cost).split('#')[0]
-                        self.path_cache[h * 64 + r * 8 + f] = self.path_offset + float(cost)
+                        self.path_cache[h * 64 + r * 8 + f] = self.ks * (self.path_offset + float(cost))
                     else:
-                        self.path_cache[h * 64 + r * 8 + f] = self.path_offset + (self.fh * h + self.fr * r + self.ff * f)
+                        self.path_cache[h * 64 + r * 8 + f] = self.ks * (self.path_offset + (self.fh * h + self.fr * r + self.ff * f))
 
         fd_rows = em['finger_distance']['row']
 
@@ -443,78 +443,75 @@ class Keyboard:
         # Optimization: Pre-checked length and mapping is assumed for hot paths
         # but we keep safety for general usage.
         try:
-            k1_obj = self.map[triad[0]]
-            k2_obj = self.map[triad[1]]
-            k3_obj = self.map[triad[2]]
+            k1 = self.map[triad[0]]
+            k2 = self.map[triad[1]]
+            k3 = self.map[triad[2]]
         except (KeyError, IndexError):
             return 0
 
-        e1, e2, e3 = k1_obj['effort'], k2_obj['effort'], k3_obj['effort']
+        e1, e2, e3 = k1['effort'], k2['effort'], k3['effort']
 
         triad_effort = e1['v1_be'] * (1 + e2['v2_be'] * (1 + e3['v3_be'])) + \
                        e1['v1_pe'] * (1 + e2['v2_pe'] * (1 + e3['v3_pe']))
 
         if self.ks != 0:
-            triad_effort += self.ks * self._calculate_path_effort(k1_obj, k2_obj, k3_obj, triad)
+            h1, h2, h3 = k1['hand'], k2['hand'], k3['hand']
+            r1, r2, r3 = k1['row'], k2['row'], k3['row']
+            f1, f2, f3 = k1['finger'], k2['finger'], k3['finger']
+            hand_flag = 0
+            if h1 == h3:
+                hand_flag = 2 if h2 == h3 else 1
+
+            finger_flag = 3
+            if f1 > f2:
+                if f2 > f3: finger_flag = 0
+                elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
+                elif f3 == f1: finger_flag = 4
+                elif f1 > f3 and f3 > f2: finger_flag = 2
+            elif f1 < f2:
+                if f2 < f3: finger_flag = 0
+                elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
+                elif f3 == f1: finger_flag = 4
+                elif f1 < f3 and f3 < f2: finger_flag = 2
+            elif f1 == f2:
+                if f2 < f3 or f3 < f1: finger_flag = 1 if triad[0] == triad[1] else 6
+                elif f2 == f3:
+                    if triad[0] != triad[1] and triad[1] != triad[2] and triad[0] != triad[2]: finger_flag = 7
+                    else: finger_flag = 5
+
+            row_flag = 0
+            if r1 < r2:
+                if r3 == r2: row_flag = 1
+                elif r2 < r3: row_flag = 4
+                else:
+                    d12a, v12 = abs(r1-r2), r1-r2
+                    d13a, v13 = abs(r1-r3), r1-r3
+                    d23a, v23 = abs(r2-r3), r2-r3
+                    drmax_abs, drmax = d12a, v12
+                    if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
+                    if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
+                    if drmax_abs == 1: row_flag = 3
+                    else: row_flag = 7 if drmax < 0 else 5
+            elif r1 > r2:
+                if r3 == r2: row_flag = 2
+                elif r2 > r3: row_flag = 6
+                else:
+                    d12a, v12 = abs(r1-r2), r1-r2
+                    d13a, v13 = abs(r1-r3), r1-r3
+                    d23a, v23 = abs(r2-r3), r2-r3
+                    drmax_abs, drmax = d12a, v12
+                    if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
+                    if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
+                    if drmax_abs == 1: row_flag = 3
+                    else: row_flag = 7 if drmax < 0 else 5
+            else:
+                if r2 > r3: row_flag = 2
+                elif r2 < r3: row_flag = 1
+                else: row_flag = 0
+
+            triad_effort += self.path_cache[hand_flag * 64 + row_flag * 8 + finger_flag]
 
         return triad_effort
-
-    def _calculate_path_effort(self, k1, k2, k3, triad):
-        h1, h2, h3 = k1['hand'], k2['hand'], k3['hand']
-        r1, r2, r3 = k1['row'], k2['row'], k3['row']
-        f1, f2, f3 = k1['finger'], k2['finger'], k3['finger']
-        hand_flag = 0
-        if h1 == h3:
-            hand_flag = 2 if h2 == h3 else 1
-
-        finger_flag = 3
-        if f1 > f2:
-            if f2 > f3: finger_flag = 0
-            elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
-            elif f3 == f1: finger_flag = 4
-            elif f1 > f3 and f3 > f2: finger_flag = 2
-        elif f1 < f2:
-            if f2 < f3: finger_flag = 0
-            elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
-            elif f3 == f1: finger_flag = 4
-            elif f1 < f3 and f3 < f2: finger_flag = 2
-        elif f1 == f2:
-            if f2 < f3 or f3 < f1: finger_flag = 1 if triad[0] == triad[1] else 6
-            elif f2 == f3:
-                if triad[0] != triad[1] and triad[1] != triad[2] and triad[0] != triad[2]: finger_flag = 7
-                else: finger_flag = 5
-
-        row_flag = 0
-        if r1 < r2:
-            if r3 == r2: row_flag = 1
-            elif r2 < r3: row_flag = 4
-            else:
-                d12a, v12 = abs(r1-r2), r1-r2
-                d13a, v13 = abs(r1-r3), r1-r3
-                d23a, v23 = abs(r2-r3), r2-r3
-                drmax_abs, drmax = d12a, v12
-                if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
-                if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
-                if drmax_abs == 1: row_flag = 3
-                else: row_flag = 7 if drmax < 0 else 5
-        elif r1 > r2:
-            if r3 == r2: row_flag = 2
-            elif r2 > r3: row_flag = 6
-            else:
-                d12a, v12 = abs(r1-r2), r1-r2
-                d13a, v13 = abs(r1-r3), r1-r3
-                d23a, v23 = abs(r2-r3), r2-r3
-                drmax_abs, drmax = d12a, v12
-                if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
-                if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
-                if drmax_abs == 1: row_flag = 3
-                else: row_flag = 7 if drmax < 0 else 5
-        else:
-            if r2 > r3: row_flag = 2
-            elif r2 < r3: row_flag = 1
-            else: row_flag = 0
-
-        return self.path_cache[hand_flag * 64 + row_flag * 8 + finger_flag]
 
     def save(self, filepath):
         with open(filepath, 'w') as f:
