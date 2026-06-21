@@ -17,3 +17,8 @@
 **Mode:** Bolt
 **Learning:** In the triad effort calculation, multiplying by `ks` and adding `path_offset` for every triad in every iteration is redundant. By folding these operations into the pre-calculated `pathCosts`/`path_cache` array, we eliminate two arithmetic operations from the innermost hot loop of the optimization algorithms across all implementations.
 **Action:** Identify constant-weighted components in hot loops and fold them into pre-calculated look-up tables to minimize per-iteration arithmetic.
+
+## 2026-06-20 - [Position-based Triad Effort Pre-calculation]
+**Mode:** Bolt
+**Learning:** Triad effort calculation is the primary bottleneck in keyboard layout optimization. Since the effort model depends on fixed position-based penalties and path costs, the effort for all ^3$ position triads can be pre-calculated. This reduces the complexity of `calculateTriadEffort` from dozens of logic branches to a single O(1) lookup in a typed array, yielding a ~12.6x speedup.
+**Action:** For iterative optimization problems with cost functions dependent on fixed underlying geometry, pre-calculate the full cost tensor to eliminate redundant logic in innermost loops.

@@ -45,6 +45,7 @@ class Carpalx {
 
         this.fingers = [[0, 0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9, 9], [0, 1, 2, 3, 3, 6, 6, 7, 8, 9]];
 
+        this.posTriadEfforts = new Float64Array(47 * 47 * 47);
         this.initPathCosts();
         this.initKeyboard();
     }
@@ -63,6 +64,8 @@ class Carpalx {
     initKeyboard() {
         this.keys = [];
         this.map = {};
+        this.positions = [];
+        let posId = 0;
         for (let r = 0; r < this.initialLayout.length; r++) {
             this.keys[r] = [];
             for (let c = 0; c < this.initialLayout[r].length; c++) {
@@ -83,6 +86,7 @@ class Carpalx {
                 let hand = finger >= 5 ? 1 : 0;
 
                 let key = {
+                    id: posId++,
                     row: r,
                     col: c,
                     lc: lc,
@@ -95,10 +99,12 @@ class Carpalx {
                 this.keys[r][c] = key;
                 this.map[lc] = key;
                 this.map[uc] = key;
+                this.positions.push(key);
 
                 this.calculateKeyEffort(key);
             }
         }
+        this.precalculateTriadEfforts();
     }
 
     calculateKeyEffort(key) {
@@ -139,10 +145,18 @@ class Carpalx {
         return totalCount > 0 ? totalEffort / totalCount : 0;
     }
 
-    calculateTriadEffort(triad) {
-        let c1 = triad[0], c2 = triad[1], c3 = triad[2];
-        let k1 = this.map[c1], k2 = this.map[c2], k3 = this.map[c3];
+    precalculateTriadEfforts() {
+        const n = this.positions.length;
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                for (let k = 0; k < n; k++) {
+                    this.posTriadEfforts[i * 2209 + j * 47 + k] = this._getTriadEffortFromKeys(this.positions[i], this.positions[j], this.positions[k]);
+                }
+            }
+        }
+    }
 
+    _getTriadEffortFromKeys(k1, k2, k3) {
         let e1 = k1.effort, e2 = k2.effort, e3 = k3.effort;
 
         let triad_effort = e1.v1_be * (1 + e2.v2_be * (1 + e3.v3_be)) +
@@ -161,20 +175,20 @@ class Carpalx {
             let finger_flag = 3;
             if (f1 > f2) {
                 if (f2 > f3) finger_flag = 0;
-                else if (f2 === f3) finger_flag = (c2 === c3) ? 1 : 6;
+                else if (f2 === f3) finger_flag = (k2.id === k3.id) ? 1 : 6;
                 else if (f3 === f1) finger_flag = 4;
                 else if (f1 > f3 && f3 > f2) finger_flag = 2;
                 else finger_flag = 3;
             } else if (f1 < f2) {
                 if (f2 < f3) finger_flag = 0;
-                else if (f2 === f3) finger_flag = (c2 === c3) ? 1 : 6;
+                else if (f2 === f3) finger_flag = (k2.id === k3.id) ? 1 : 6;
                 else if (f3 === f1) finger_flag = 4;
                 else if (f1 < f3 && f3 < f2) finger_flag = 2;
                 else finger_flag = 3;
             } else if (f1 === f2) {
-                if (f2 < f3 || f3 < f1) finger_flag = (c1 === c2) ? 1 : 6;
+                if (f2 < f3 || f3 < f1) finger_flag = (k1.id === k2.id) ? 1 : 6;
                 else if (f2 === f3) {
-                    if (c1 !== c2 && c2 !== c3 && c1 !== c3) finger_flag = 7;
+                    if (k1.id !== k2.id && k2.id !== k3.id && k1.id !== k3.id) finger_flag = 7;
                     else finger_flag = 5;
                 }
             }
@@ -218,6 +232,11 @@ class Carpalx {
         }
 
         return triad_effort;
+    }
+
+    calculateTriadEffort(triad) {
+        const k1 = this.map[triad[0]], k2 = this.map[triad[1]], k3 = this.map[triad[2]];
+        return this.posTriadEfforts[k1.id * 2209 + k2.id * 47 + k3.id];
     }
 }
 
