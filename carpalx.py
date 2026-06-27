@@ -302,7 +302,10 @@ class Keyboard:
         self.layout_file = layout_file
         self.keys = []
         self.map = {}
+        self.positions = []
+        self.num_positions = 0
         self.path_cache = []
+        self.pos_triad_efforts = []
         self._load_layout(layout_file)
         self._load_effort_model()
 
@@ -335,6 +338,8 @@ class Keyboard:
         rows = data['keyboard']['row']
         sorted_rows = sorted(rows.keys(), key=lambda x: int(x))
         self.keys = []
+        self.positions = []
+        pos_id = 0
         for r_idx in sorted_rows:
             row_data = rows[r_idx]
             keys_list = row_data['keys'].split()
@@ -347,10 +352,21 @@ class Keyboard:
                 else: lc, uc = k[0], k[1]
                 finger = int(f)
                 hand = 1 if finger > 4 else 0
-                key_obj = {'row': int(r_idx) - 1, 'col': col_idx, 'lc': lc, 'uc': uc, 'finger': finger, 'hand': hand, 'effort': {}}
+                key_obj = {
+                    'id': pos_id,
+                    'row': int(r_idx) - 1,
+                    'col': col_idx,
+                    'lc': lc,
+                    'uc': uc,
+                    'finger': finger,
+                    'hand': hand,
+                    'effort': {}
+                }
                 row_objs.append(key_obj)
                 self.map[lc] = key_obj
                 self.map[uc] = key_obj
+                self.positions.append(key_obj)
+                pos_id += 1
                 col_idx += 1
             self.keys.append(row_objs)
 
@@ -429,26 +445,20 @@ class Keyboard:
                         key['effort']['v3_pe'] = self.k3 * total_penalty
                     else:
                         print(f"Warning: No effort defined for key at {r},{c}")
+        self._precalculate_triad_efforts()
 
-    def calculate_effort(self, triads):
-        total_effort = 0
-        total_triads = 0
-        for triad, freq in triads.items():
-            triad_effort = self.get_triad_effort(triad)
-            total_effort += triad_effort * freq
-            total_triads += freq
-        return total_effort / total_triads if total_triads > 0 else 0
+    def _precalculate_triad_efforts(self):
+        n = len(self.positions)
+        self.num_positions = n
+        self.pos_triad_efforts = [0.0] * (n * n * n)
+        for i in range(n):
+            for j in range(n):
+                for k in range(n):
+                    self.pos_triad_efforts[i * n * n + j * n + k] = self._get_triad_effort_from_keys(
+                        self.positions[i], self.positions[j], self.positions[k]
+                    )
 
-    def get_triad_effort(self, triad):
-        # Optimization: Pre-checked length and mapping is assumed for hot paths
-        # but we keep safety for general usage.
-        try:
-            k1 = self.map[triad[0]]
-            k2 = self.map[triad[1]]
-            k3 = self.map[triad[2]]
-        except (KeyError, IndexError):
-            return 0
-
+    def _get_triad_effort_from_keys(self, k1, k2, k3):
         e1, e2, e3 = k1['effort'], k2['effort'], k3['effort']
 
         triad_effort = e1['v1_be'] * (1 + e2['v2_be'] * (1 + e3['v3_be'])) + \
@@ -465,18 +475,18 @@ class Keyboard:
             finger_flag = 3
             if f1 > f2:
                 if f2 > f3: finger_flag = 0
-                elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
+                elif f2 == f3: finger_flag = 1 if k2['id'] == k3['id'] else 6
                 elif f3 == f1: finger_flag = 4
                 elif f1 > f3 and f3 > f2: finger_flag = 2
             elif f1 < f2:
                 if f2 < f3: finger_flag = 0
-                elif f2 == f3: finger_flag = 1 if triad[1] == triad[2] else 6
+                elif f2 == f3: finger_flag = 1 if k2['id'] == k3['id'] else 6
                 elif f3 == f1: finger_flag = 4
                 elif f1 < f3 and f3 < f2: finger_flag = 2
             elif f1 == f2:
-                if f2 < f3 or f3 < f1: finger_flag = 1 if triad[0] == triad[1] else 6
+                if f2 < f3 or f3 < f1: finger_flag = 1 if k1['id'] == k2['id'] else 6
                 elif f2 == f3:
-                    if triad[0] != triad[1] and triad[1] != triad[2] and triad[0] != triad[2]: finger_flag = 7
+                    if k1['id'] != k2['id'] and k2['id'] != k3['id'] and k1['id'] != k3['id']: finger_flag = 7
                     else: finger_flag = 5
 
             row_flag = 0
@@ -513,6 +523,26 @@ class Keyboard:
 
         return triad_effort
 
+    def calculate_effort(self, triads):
+        total_effort = 0
+        total_triads = 0
+        for triad, freq in triads.items():
+            triad_effort = self.get_triad_effort(triad)
+            total_effort += triad_effort * freq
+            total_triads += freq
+        return total_effort / total_triads if total_triads > 0 else 0
+
+    def get_triad_effort(self, triad):
+        # Optimization: Pre-calculated position triad effort lookup
+        try:
+            k1 = self.map[triad[0]]
+            k2 = self.map[triad[1]]
+            k3 = self.map[triad[2]]
+            n = self.num_positions
+            return self.pos_triad_efforts[k1['id'] * n * n + k2['id'] * n + k3['id']]
+        except (KeyError, IndexError):
+            return 0
+
     def save(self, filepath):
         with open(filepath, 'w') as f:
             f.write("<keyboard>\n")
@@ -541,6 +571,17 @@ class Keyboard:
         self.map[key1['uc']] = key1
         self.map[key2['lc']] = key2
         self.map[key2['uc']] = key2
+
+    def get_layout(self):
+        return [(k['lc'], k['uc']) for k in self.positions]
+
+    def set_layout(self, layout):
+        for i, (lc, uc) in enumerate(layout):
+            key = self.positions[i]
+            key['lc'] = lc
+            key['uc'] = uc
+            self.map[lc] = key
+            self.map[uc] = key
 
     def plot(self, title="Keyboard Layout"):
         if not plt or not patches:
@@ -708,7 +749,7 @@ class SimulatedAnnealing(OptimizerBase):
         current_effort = self.keyboard.calculate_effort(self.triads)
         current_weighted_effort = current_effort * self.total_freq
         print(f"Initial Effort: {current_effort}")
-        best_keyboard = copy.deepcopy(self.keyboard)
+        best_layout = self.keyboard.get_layout()
         best_weighted_effort = current_weighted_effort
 
         for i in range(1, self.iterations + 1):
@@ -737,7 +778,7 @@ class SimulatedAnnealing(OptimizerBase):
                 current_weighted_effort += weighted_delta
                 if current_weighted_effort < best_weighted_effort:
                     best_weighted_effort = current_weighted_effort
-                    best_keyboard = copy.deepcopy(self.keyboard)
+                    best_layout = self.keyboard.get_layout()
                     print(f"Iter {i}: New Best Effort: {best_weighted_effort / self.total_freq:.4f}")
             else:
                 self.keyboard.swap_keys(k1, k2)
@@ -746,7 +787,8 @@ class SimulatedAnnealing(OptimizerBase):
                 self.history.append((i, current_weighted_effort / self.total_freq))
             if i % 1000 == 0:
                 print(f"Iter {i}, Temp {t:.4f}, Effort {current_weighted_effort / self.total_freq:.4f}")
-        return best_keyboard
+        self.keyboard.set_layout(best_layout)
+        return self.keyboard
 
 class LateAcceptanceHillClimbing(OptimizerBase):
     def __init__(self, keyboard, triads, config):
@@ -759,7 +801,7 @@ class LateAcceptanceHillClimbing(OptimizerBase):
         current_weighted_effort = current_effort * self.total_freq
 
         history = [current_weighted_effort] * self.history_size
-        best_keyboard = copy.deepcopy(self.keyboard)
+        best_layout = self.keyboard.get_layout()
         best_weighted_effort = current_weighted_effort
 
         print(f"Initial Effort: {current_effort}")
@@ -784,7 +826,7 @@ class LateAcceptanceHillClimbing(OptimizerBase):
                 current_weighted_effort = new_weighted_effort
                 if current_weighted_effort < best_weighted_effort:
                     best_weighted_effort = current_weighted_effort
-                    best_keyboard = copy.deepcopy(self.keyboard)
+                    best_layout = self.keyboard.get_layout()
                     print(f"Iter {i}: New Best Effort: {best_weighted_effort / self.total_freq:.4f}")
             else:
                 self.keyboard.swap_keys(k1, k2)
@@ -796,7 +838,8 @@ class LateAcceptanceHillClimbing(OptimizerBase):
             if i % 1000 == 0:
                 print(f"Iter {i}, Effort {current_weighted_effort / self.total_freq:.4f}")
 
-        return best_keyboard
+        self.keyboard.set_layout(best_layout)
+        return self.keyboard
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Carpalx Keyboard Optimizer (Python Port)')
