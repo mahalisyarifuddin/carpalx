@@ -407,11 +407,11 @@
 	<body>
 		<div class="container">
 			<div class="selectors">
-				<select id="language">
+				<select id="language" aria-label="Language">
 					<option value="en">English</option>
 					<option value="id">Bahasa Indonesia</option>
 				</select>
-				<select id="theme">
+				<select id="theme" aria-label="Theme">
 					<option value="auto">Auto</option>
 					<option value="light">Light</option>
 					<option value="dark">Dark</option>
@@ -483,67 +483,67 @@
 					</div>
 					<div class="grid-params">
 						<div class="group">
-							<label title="Component weight: base effort">kb</label>
+							<label id="kb_label">kb</label>
 							<input type="number" step="0.001" id="kb" value="0.3555">
 						</div>
 						<div class="group">
-							<label title="Component weight: penalty effort">kp</label>
+							<label id="kp_label">kp</label>
 							<input type="number" step="0.001" id="kp" value="0.6423">
 						</div>
 						<div class="group">
-							<label title="Component weight: path effort">ks</label>
+							<label id="ks_label">ks</label>
 							<input type="number" step="0.001" id="ks" value="0.4268">
 						</div>
 						<div class="group">
-							<label title="Interaction weight: 1st key">k1</label>
+							<label id="k1_label">k1</label>
 							<input type="number" step="0.001" id="k1" value="1">
 						</div>
 						<div class="group">
-							<label title="Interaction weight: 2nd key">k2</label>
+							<label id="k2_label">k2</label>
 							<input type="number" step="0.001" id="k2" value="0.367">
 						</div>
 						<div class="group">
-							<label title="Interaction weight: 3rd key">k3</label>
+							<label id="k3_label">k3</label>
 							<input type="number" step="0.001" id="k3" value="0.235">
 						</div>
 					</div>
 					<div class="grid-params" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
 						<div class="group">
-							<label title="Default penalty">w0</label>
+							<label id="w0_label">w0</label>
 							<input type="number" step="0.1" id="w0" value="0">
 						</div>
 						<div class="group">
-							<label title="Hand weight">wh</label>
+							<label id="wh_label">wh</label>
 							<input type="number" step="0.1" id="wh" value="1">
 						</div>
 						<div class="group">
-							<label title="Row weight">wr</label>
+							<label id="wr_label">wr</label>
 							<input type="number" step="0.1" id="wr" value="1.3088">
 						</div>
 						<div class="group">
-							<label title="Finger weight">wf</label>
+							<label id="wf_label">wf</label>
 							<input type="number" step="0.1" id="wf" value="2.5948">
 						</div>
 						<div class="group">
-							<label title="Path weight: hand">fh</label>
+							<label id="fh_label">fh</label>
 							<input type="number" step="0.1" id="fh" value="1">
 						</div>
 						<div class="group">
-							<label title="Path weight: row">fr</label>
+							<label id="fr_label">fr</label>
 							<input type="number" step="0.1" id="fr" value="0.3">
 						</div>
 						<div class="group">
-							<label title="Path weight: finger">ff</label>
+							<label id="ff_label">ff</label>
 							<input type="number" step="0.1" id="ff" value="0.3">
 						</div>
 						<div class="group">
-							<label title="Path offset">poffset</label>
+							<label id="path_offset_label">poffset</label>
 							<input type="number" step="0.1" id="path_offset" value="0">
 						</div>
 					</div>
 					<div class="row" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
 						<div class="group" style="flex: 1;">
-							<label>Row Penalties (0-3)</label>
+							<label id="rowPenaltiesLabel">Row Penalties (0-3)</label>
 							<div class="grid-params" style="grid-template-columns: repeat(4, 1fr);">
 								<input type="number" step="0.1" id="Pr_0" value="1.5">
 								<input type="number" step="0.1" id="Pr_1" value="0.5">
@@ -552,7 +552,7 @@
 							</div>
 						</div>
 						<div class="group" style="flex: 0.5;">
-							<label>Hand Penalties (L, R)</label>
+							<label id="handPenaltiesLabel">Hand Penalties (L, R)</label>
 							<div class="grid-params" style="grid-template-columns: repeat(2, 1fr);">
 								<input type="number" step="0.1" id="Ph_L" value="0">
 								<input type="number" step="0.1" id="Ph_R" value="0">
@@ -561,18 +561,18 @@
 					</div>
 					<div class="row" style="margin-top: 0.5rem;">
 						<div class="group">
-							<label>Finger Penalties (L-Pinky to R-Pinky)</label>
+							<label id="fingerPenaltiesLabel">Finger Penalties (L-Pinky to R-Pinky)</label>
 							<div class="grid-params" style="grid-template-columns: repeat(10, 1fr);">
-								<input type="number" step="0.1" id="Pf_L0" value="1" title="Left Pinky">
-								<input type="number" step="0.1" id="Pf_L1" value="0.5" title="Left Ring">
-								<input type="number" step="0.1" id="Pf_L2" value="0" title="Left Middle">
-								<input type="number" step="0.1" id="Pf_L3" value="0" title="Left Index">
-								<input type="number" step="0.1" id="Pf_L4" value="0" title="Left Thumb">
-								<input type="number" step="0.1" id="Pf_R0" value="0" title="Right Thumb">
-								<input type="number" step="0.1" id="Pf_R1" value="0" title="Right Index">
-								<input type="number" step="0.1" id="Pf_R2" value="0" title="Right Middle">
-								<input type="number" step="0.1" id="Pf_R3" value="0.5" title="Right Ring">
-								<input type="number" step="0.1" id="Pf_R4" value="1" title="Right Pinky">
+								<input type="number" step="0.1" id="Pf_L0" value="1">
+								<input type="number" step="0.1" id="Pf_L1" value="0.5">
+								<input type="number" step="0.1" id="Pf_L2" value="0">
+								<input type="number" step="0.1" id="Pf_L3" value="0">
+								<input type="number" step="0.1" id="Pf_L4" value="0">
+								<input type="number" step="0.1" id="Pf_R0" value="0">
+								<input type="number" step="0.1" id="Pf_R1" value="0">
+								<input type="number" step="0.1" id="Pf_R2" value="0">
+								<input type="number" step="0.1" id="Pf_R3" value="0.5">
+								<input type="number" step="0.1" id="Pf_R4" value="1">
 							</div>
 						</div>
 					</div>
@@ -647,7 +647,7 @@
 					this.ff = 0.3;
 					this.path_offset = 0;
 					this.pathCosts = {};
-					this.posTriadEfforts = new Float64Array(47 * 47 * 47);
+					this.posTriadEfforts = null;
 
 					this.baseEfforts = [[5, 4, 4, 4, 4, 4, 4.5, 4, 4, 4, 4, 4.5, 5.5], [2, 2, 2, 2, 2.5, 3, 2, 2, 2, 2, 2.5, 4, 6], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2], [2, 2, 2, 2, 3.5, 2, 2, 2, 2, 2]];
 
@@ -826,10 +826,13 @@
 
 				precalculateTriadEfforts() {
 					const n = this.positions.length;
+					if (!this.posTriadEfforts || this.posTriadEfforts.length !== n * n * n) {
+						this.posTriadEfforts = new Float64Array(n * n * n);
+					}
 					for (let i = 0; i < n; i++) {
 						for (let j = 0; j < n; j++) {
 							for (let k = 0; k < n; k++) {
-								this.posTriadEfforts[i * 2209 + j * 47 + k] = this._getTriadEffortFromKeys(this.positions[i], this.positions[j], this.positions[k]);
+								this.posTriadEfforts[i * n * n + j * n + k] = this._getTriadEffortFromKeys(this.positions[i], this.positions[j], this.positions[k]);
 							}
 						}
 					}
@@ -938,7 +941,8 @@
 
 				calculateTriadEffort(triad) {
 					const k1 = this.map[triad[0]], k2 = this.map[triad[1]], k3 = this.map[triad[2]];
-					return this.posTriadEfforts[k1.id * 2209 + k2.id * 47 + k3.id];
+					const n = this.positions.length;
+					return this.posTriadEfforts[k1.id * n * n + k2.id * n + k3.id];
 				}
 
 				getCharToTriads(triads) {
@@ -1124,7 +1128,29 @@
 					azerty: 'AZERTY',
 					colemak: 'Colemak',
 					dvorak: 'Dvorak',
-					workman: 'Workman'
+					workman: 'Workman',
+					full: 'Full (Simulated Annealing)',
+					lahc: 'Late Acceptance Hill Climbing',
+					partial: 'Partial (Iterative Key Swaps)',
+					kb_label: 'kb', kb_label_title: 'Component weight: base effort',
+					kp_label: 'kp', kp_label_title: 'Component weight: penalty effort',
+					ks_label: 'ks', ks_label_title: 'Component weight: path effort',
+					k1_label: 'k1', k1_label_title: 'Interaction weight: 1st key',
+					k2_label: 'k2', k2_label_title: 'Interaction weight: 2nd key',
+					k3_label: 'k3', k3_label_title: 'Interaction weight: 3rd key',
+					w0_label: 'w0', w0_label_title: 'Default penalty',
+					wh_label: 'wh', wh_label_title: 'Hand weight',
+					wr_label: 'wr', wr_label_title: 'Row weight',
+					wf_label: 'wf', wf_label_title: 'Finger weight',
+					fh_label: 'fh', fh_label_title: 'Path weight: hand',
+					fr_label: 'fr', fr_label_title: 'Path weight: row',
+					ff_label: 'ff', ff_label_title: 'Path weight: finger',
+					path_offset_label: 'poffset', path_offset_label_title: 'Path offset',
+					rowPenaltiesLabel: 'Row Penalties (0-3)',
+					handPenaltiesLabel: 'Hand Penalties (L, R)',
+					fingerPenaltiesLabel: 'Finger Penalties (L-Pinky to R-Pinky)',
+					language_label: 'Language',
+					theme_label: 'Theme'
 				},
 				id: {
 					title: 'Optimasi Keyboard Carpalx',
@@ -1156,7 +1182,29 @@
 					azerty: 'AZERTY',
 					colemak: 'Colemak',
 					dvorak: 'Dvorak',
-					workman: 'Workman'
+					workman: 'Workman',
+					full: 'Penuh (Simulated Annealing)',
+					lahc: 'Late Acceptance Hill Climbing',
+					partial: 'Parsial (Pertukaran Kunci Iteratif)',
+					kb_label: 'kb', kb_label_title: 'Bobot komponen: upaya dasar',
+					kp_label: 'kp', kp_label_title: 'Bobot komponen: upaya penalti',
+					ks_label: 'ks', ks_label_title: 'Bobot komponen: upaya jalur',
+					k1_label: 'k1', k1_label_title: 'Bobot interaksi: kunci ke-1',
+					k2_label: 'k2', k2_label_title: 'Bobot interaksi: kunci ke-2',
+					k3_label: 'k3', k3_label_title: 'Bobot interaksi: kunci ke-3',
+					w0_label: 'w0', w0_label_title: 'Penalti default',
+					wh_label: 'wh', wh_label_title: 'Bobot tangan',
+					wr_label: 'wr', wr_label_title: 'Bobot baris',
+					wf_label: 'wf', wf_label_title: 'Bobot jari',
+					fh_label: 'fh', fh_label_title: 'Bobot jalur: tangan',
+					fr_label: 'fr', fr_label_title: 'Bobot jalur: baris',
+					ff_label: 'ff', ff_label_title: 'Bobot jalur: jari',
+					path_offset_label: 'poffset', path_offset_label_title: 'Offset jalur',
+					rowPenaltiesLabel: 'Penalti Baris (0-3)',
+					handPenaltiesLabel: 'Penalti Tangan (Kiri, Kanan)',
+					fingerPenaltiesLabel: 'Penalti Jari (Kelingking Kiri ke Kelingking Kanan)',
+					language_label: 'Bahasa',
+					theme_label: 'Tema'
 				}
 			};
 			const elements = new Proxy({},{
@@ -1445,13 +1493,21 @@
 				lang(language) {
 					this.language = elements.language.value = document.documentElement.lang = language;
 					Object.keys(textTranslations.en).forEach(key=>{
-						if (elements[key])
+						if (elements[key]) {
 							elements[key].textContent = this.string(key);
+							const titleKey = key + '_title';
+							if (textTranslations.en[titleKey]) {
+								elements[key].title = this.string(titleKey);
+							}
+						}
 					}
 					);
 					[...elements.theme.options].forEach(option=>option.textContent = this.string(option.value + 'Theme'));
 					[...elements.baseLayoutSelect.options].forEach(option=>option.textContent = this.string(option.value));
+					[...elements.optModeSelect.options].forEach(option=>option.textContent = this.string(option.value));
 					elements.optimizeBtn.textContent = this.string(this.optimizing ? 'optimizing' : 'optimizeBtn');
+					elements.language.ariaLabel = this.string('language_label');
+					elements.theme.ariaLabel = this.string('theme_label');
 					this.updateFileNameDisplay();
 				}
 
