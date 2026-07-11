@@ -696,16 +696,13 @@ class OptimizerBase:
         return reloc
 
     def calculate_weighted_delta(self, k1, k2):
-        char1 = self.keyboard.keys[k1[0]][k1[1]]['lc']
-        char1_uc = self.keyboard.keys[k1[0]][k1[1]]['uc']
-        char2 = self.keyboard.keys[k2[0]][k2[1]]['lc']
-        char2_uc = self.keyboard.keys[k2[0]][k2[1]]['uc']
+        key1 = self.keyboard.keys[k1[0]][k1[1]]
+        key2 = self.keyboard.keys[k2[0]][k2[1]]
 
-        affected_triads = set(self.char_to_triads[char1]).union(
-            self.char_to_triads[char1_uc],
-            self.char_to_triads[char2],
-            self.char_to_triads[char2_uc]
-        )
+        affected_triads = set(self.char_to_triads[key1['lc']])
+        affected_triads.update(self.char_to_triads[key1['uc']])
+        affected_triads.update(self.char_to_triads[key2['lc']])
+        affected_triads.update(self.char_to_triads[key2['uc']])
 
         effort_before = sum(self.keyboard.get_triad_effort(t) * self.triads[t] for t in affected_triads)
         self.keyboard.swap_keys(k1, k2)
@@ -727,20 +724,26 @@ class SimulatedAnnealing(OptimizerBase):
         current_effort = self.keyboard.calculate_effort(self.triads)
         best_delta = 0
 
-        for i in range(len(self.relocatable)):
-            for j in range(i + 1, len(self.relocatable)):
-                k1 = self.relocatable[i]
-                k2 = self.relocatable[j]
-
-                if self.restrict_same_row and k1[0] != k2[0]:
-                    continue
-
-                weighted_delta = self.calculate_weighted_delta(k1, k2)
-                self.keyboard.swap_keys(k1, k2)  # restore state
-
-                if weighted_delta < best_delta:
-                    best_delta = weighted_delta
-                    best_swap = (k1, k2)
+        if self.restrict_same_row:
+            for row in self.relocatable_by_row:
+                keys = self.relocatable_by_row[row]
+                for i in range(len(keys)):
+                    for j in range(i + 1, len(keys)):
+                        k1, k2 = keys[i], keys[j]
+                        weighted_delta = self.calculate_weighted_delta(k1, k2)
+                        self.keyboard.swap_keys(k1, k2) # restore state
+                        if weighted_delta < best_delta:
+                            best_delta = weighted_delta
+                            best_swap = (k1, k2)
+        else:
+            for i in range(len(self.relocatable)):
+                for j in range(i + 1, len(self.relocatable)):
+                    k1, k2 = self.relocatable[i], self.relocatable[j]
+                    weighted_delta = self.calculate_weighted_delta(k1, k2)
+                    self.keyboard.swap_keys(k1, k2) # restore state
+                    if weighted_delta < best_delta:
+                        best_delta = weighted_delta
+                        best_swap = (k1, k2)
 
         return best_swap, current_effort + (best_delta / self.total_freq)
 
