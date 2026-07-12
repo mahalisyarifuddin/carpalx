@@ -957,28 +957,26 @@
 				}
 
 				calculateWeightedDelta(k1, k2, triads, charToTriads) {
-					const char1 = this.keys[k1[0]][k1[1]].lc;
-					const char1_uc = this.keys[k1[0]][k1[1]].uc;
-					const char2 = this.keys[k2[0]][k2[1]].lc;
-					const char2_uc = this.keys[k2[0]][k2[1]].uc;
+					const key1 = this.keys[k1[0]][k1[1]];
+					const key2 = this.keys[k2[0]][k2[1]];
 
 					const affectedTriads = new Set();
-					(charToTriads[char1] || []).forEach(t=>affectedTriads.add(t));
-					(charToTriads[char1_uc] || []).forEach(t=>affectedTriads.add(t));
-					(charToTriads[char2] || []).forEach(t=>affectedTriads.add(t));
-					(charToTriads[char2_uc] || []).forEach(t=>affectedTriads.add(t));
+					if (charToTriads[key1.lc]) for (const t of charToTriads[key1.lc]) affectedTriads.add(t);
+					if (charToTriads[key1.uc]) for (const t of charToTriads[key1.uc]) affectedTriads.add(t);
+					if (charToTriads[key2.lc]) for (const t of charToTriads[key2.lc]) affectedTriads.add(t);
+					if (charToTriads[key2.uc]) for (const t of charToTriads[key2.uc]) affectedTriads.add(t);
 
 					let effortBefore = 0;
-					affectedTriads.forEach(t => {
+					for (const t of affectedTriads) {
 						effortBefore += this.calculateTriadEffort(t) * triads[t];
-					});
+					}
 
 					this.swapKeys(k1, k2);
 
 					let effortAfter = 0;
-					affectedTriads.forEach(t => {
+					for (const t of affectedTriads) {
 						effortAfter += this.calculateTriadEffort(t) * triads[t];
-					});
+					}
 
 					return effortAfter - effortBefore;
 				}
@@ -1037,20 +1035,36 @@
 					let bestSwap = null;
 					let bestDelta = 0;
 
-					for (let i = 0; i < relocatable.length; i++) {
-						for (let j = i + 1; j < relocatable.length; j++) {
-							const k1 = relocatable[i];
-							const k2 = relocatable[j];
-
-							if (this.restrictSameRow && k1[0] !== k2[0])
-								continue;
-
-							const delta = this.calculateWeightedDelta(k1, k2, triads, charToTriads);
-							this.swapKeys(k1, k2); // restore state
-
-							if (delta < bestDelta) {
-								bestDelta = delta;
-								bestSwap = [k1, k2];
+					if (this.restrictSameRow) {
+						const byRow = {};
+						for (const k of relocatable) {
+							if (!byRow[k[0]]) byRow[k[0]] = [];
+							byRow[k[0]].push(k);
+						}
+						for (const r in byRow) {
+							const rowKeys = byRow[r];
+							for (let i = 0; i < rowKeys.length; i++) {
+								for (let j = i + 1; j < rowKeys.length; j++) {
+									const delta = this.calculateWeightedDelta(rowKeys[i], rowKeys[j], triads, charToTriads);
+									this.swapKeys(rowKeys[i], rowKeys[j]); // restore state
+									if (delta < bestDelta) {
+										bestDelta = delta;
+										bestSwap = [rowKeys[i], rowKeys[j]];
+									}
+								}
+							}
+						}
+					} else {
+						for (let i = 0; i < relocatable.length; i++) {
+							for (let j = i + 1; j < relocatable.length; j++) {
+								const k1 = relocatable[i];
+								const k2 = relocatable[j];
+								const delta = this.calculateWeightedDelta(k1, k2, triads, charToTriads);
+								this.swapKeys(k1, k2); // restore state
+								if (delta < bestDelta) {
+									bestDelta = delta;
+									bestSwap = [k1, k2];
+								}
 							}
 						}
 					}
@@ -1706,6 +1720,12 @@
 						let k2;
 
 						if (this.carpalx.restrictSameRow) {
+							if (!relocatableByRow[k1[0]]) {
+								relocatable.forEach(rk => {
+									if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
+									if (!relocatableByRow[rk[0]].includes(rk)) relocatableByRow[rk[0]].push(rk);
+								});
+							}
 							const sameRowKeys = relocatableByRow[k1[0]];
 							if (sameRowKeys.length < 2) continue;
 							k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
@@ -1807,6 +1827,12 @@
 						let k2;
 
 						if (this.carpalx.restrictSameRow) {
+							if (!relocatableByRow[k1[0]]) {
+								relocatable.forEach(rk => {
+									if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
+									if (!relocatableByRow[rk[0]].includes(rk)) relocatableByRow[rk[0]].push(rk);
+								});
+							}
 							const sameRowKeys = relocatableByRow[k1[0]];
 							if (sameRowKeys.length < 2) continue;
 							k2 = sameRowKeys[Math.floor(Math.random() * sameRowKeys.length)];
