@@ -494,26 +494,18 @@ class Keyboard:
                 if r3 == r2: row_flag = 1
                 elif r2 < r3: row_flag = 4
                 else:
-                    d12a, v12 = abs(r1-r2), r1-r2
-                    d13a, v13 = abs(r1-r3), r1-r3
-                    d23a, v23 = abs(r2-r3), r2-r3
-                    drmax_abs, drmax = d12a, v12
-                    if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
-                    if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
-                    if drmax_abs == 1: row_flag = 3
-                    else: row_flag = 7 if drmax < 0 else 5
+                    drmax_abs, drmax = abs(r1-r2), r1-r2
+                    for d, v in ((abs(r1-r3), r1-r3), (abs(r2-r3), r2-r3)):
+                        if d > drmax_abs or (d == drmax_abs and v < drmax): drmax_abs, drmax = d, v
+                    row_flag = 3 if drmax_abs == 1 else (7 if drmax < 0 else 5)
             elif r1 > r2:
                 if r3 == r2: row_flag = 2
                 elif r2 > r3: row_flag = 6
                 else:
-                    d12a, v12 = abs(r1-r2), r1-r2
-                    d13a, v13 = abs(r1-r3), r1-r3
-                    d23a, v23 = abs(r2-r3), r2-r3
-                    drmax_abs, drmax = d12a, v12
-                    if d13a > drmax_abs or (d13a == drmax_abs and v13 < drmax): drmax_abs, drmax = d13a, v13
-                    if d23a > drmax_abs or (d23a == drmax_abs and v23 < drmax): drmax_abs, drmax = d23a, v23
-                    if drmax_abs == 1: row_flag = 3
-                    else: row_flag = 7 if drmax < 0 else 5
+                    drmax_abs, drmax = abs(r1-r2), r1-r2
+                    for d, v in ((abs(r1-r3), r1-r3), (abs(r2-r3), r2-r3)):
+                        if d > drmax_abs or (d == drmax_abs and v < drmax): drmax_abs, drmax = d, v
+                    row_flag = 3 if drmax_abs == 1 else (7 if drmax < 0 else 5)
             else:
                 if r2 > r3: row_flag = 2
                 elif r2 < r3: row_flag = 1

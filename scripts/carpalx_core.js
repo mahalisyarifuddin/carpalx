@@ -201,29 +201,21 @@ class Carpalx {
                 if (r3 === r2) row_flag = 1;
                 else if (r2 < r3) row_flag = 4;
                 else {
-                    let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
-                    let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
-                    let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
-                    let drmax_abs = d12a, drmax = v12;
-                    if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) { drmax_abs = d13a; drmax = v13; }
-                    if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) { drmax_abs = d23a; drmax = v23; }
-
-                    if (drmax_abs === 1) row_flag = 3;
-                    else row_flag = (drmax < 0) ? 7 : 5;
+                    let drmax_abs = Math.abs(r1 - r2), drmax = r1 - r2;
+                    for (let [d, v] of [[Math.abs(r1 - r3), r1 - r3], [Math.abs(r2 - r3), r2 - r3]]) {
+                        if (d > drmax_abs || (d === drmax_abs && v < drmax)) { drmax_abs = d; drmax = v; }
+                    }
+                    row_flag = (drmax_abs === 1) ? 3 : ((drmax < 0) ? 7 : 5);
                 }
             } else if (r1 > r2) {
                 if (r3 === r2) row_flag = 2;
                 else if (r2 > r3) row_flag = 6;
                 else {
-                    let d12a = Math.abs(r1 - r2), v12 = r1 - r2;
-                    let d13a = Math.abs(r1 - r3), v13 = r1 - r3;
-                    let d23a = Math.abs(r2 - r3), v23 = r2 - r3;
-                    let drmax_abs = d12a, drmax = v12;
-                    if (d13a > drmax_abs || (d13a === drmax_abs && v13 < drmax)) { drmax_abs = d13a; drmax = v13; }
-                    if (d23a > drmax_abs || (d23a === drmax_abs && v23 < drmax)) { drmax_abs = d23a; drmax = v23; }
-
-                    if (drmax_abs === 1) row_flag = 3;
-                    else row_flag = (drmax < 0) ? 7 : 5;
+                    let drmax_abs = Math.abs(r1 - r2), drmax = r1 - r2;
+                    for (let [d, v] of [[Math.abs(r1 - r3), r1 - r3], [Math.abs(r2 - r3), r2 - r3]]) {
+                        if (d > drmax_abs || (d === drmax_abs && v < drmax)) { drmax_abs = d; drmax = v; }
+                    }
+                    row_flag = (drmax_abs === 1) ? 3 : ((drmax < 0) ? 7 : 5);
                 }
             } else {
                 if (r2 > r3) row_flag = 2;
