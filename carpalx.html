@@ -595,6 +595,9 @@
 				<div class="group">
 					<button id="resetBtn" class="secondary"></button>
 				</div>
+				<div class="group">
+					<button id="copyBtn" class="secondary"></button>
+				</div>
 			</div>
 			<div id="keyboard" class="keyboard"></div>
 			<div class="stats">
@@ -1115,6 +1118,9 @@
 					corpusLabel: 'Training Corpus (.txt)',
 					optimizeBtn: 'Start Optimization',
 					resetBtn: 'Reset Layout',
+					copyBtn: 'Copy Layout',
+					copyBtn_title: 'Copy layout in Carpalx config format',
+					copied: 'Copied!',
 					effortLabel: 'Typing Effort',
 					bestEffortLabel: 'Best Effort',
 					iterationsLabel: 'Iterations / Swaps',
@@ -1169,6 +1175,9 @@
 					corpusLabel: 'Korpus Pelatihan (.txt)',
 					optimizeBtn: 'Mulai Optimasi',
 					resetBtn: 'Reset Tata Letak',
+					copyBtn: 'Salin Tata Letak',
+					copyBtn_title: 'Salin tata letak dalam format konfigurasi Carpalx',
+					copied: 'Disalin!',
 					effortLabel: 'Upaya Pengetikan',
 					bestEffortLabel: 'Upaya Terbaik',
 					iterationsLabel: 'Iterasi / Pertukaran',
@@ -1344,6 +1353,7 @@
 					;
 					elements.optimizeBtn.onclick = ()=>this.toggleOptimize();
 					elements.resetBtn.onclick = ()=>this.reset();
+					elements.copyBtn.onclick = ()=>this.copyLayout();
 					elements.resetParamsBtn.onclick = ()=>this.resetParams();
 					elements.optModeSelect.onchange = ()=>{
 						this.updateModeUI();
@@ -1532,6 +1542,8 @@
 					[...elements.baseLayoutSelect.options].forEach(option=>option.textContent = this.string(option.value));
 					[...elements.optModeSelect.options].forEach(option=>option.textContent = this.string(option.value));
 					elements.optimizeBtn.textContent = this.string(this.optimizing ? 'optimizing' : 'optimizeBtn');
+					elements.copyBtn.textContent = this.copiedRecently ? this.string('copied') : this.string('copyBtn');
+					elements.copyBtn.title = this.string('copyBtn_title');
 					elements.language.ariaLabel = this.string('language_label');
 					elements.theme.ariaLabel = this.string('theme_label');
 					this.updateFileNameDisplay();
@@ -1931,6 +1943,59 @@
 					this.renderKeyboard();
 					this.updateEffort();
 					this.saveState();
+				}
+
+				async copyLayout() {
+					try {
+						// Format current keyboard keys to Carpalx standard config format:
+						// <keyboard>
+						// <row 1>
+						// keys    = `~ 1! 2@ 3\# 4$ ...
+						// fingers =  0  0  1   2 ...
+						// </row>
+						// ...
+						// </keyboard>
+						let layoutStr = "<keyboard>\n\n";
+						this.carpalx.keys.forEach((row, r_idx) => {
+							const keys = [];
+							const fingers = [];
+							row.forEach(k => {
+								let keyStr;
+								if (k.lc === k.uc.toLowerCase()) {
+									keyStr = k.lc;
+								} else {
+									keyStr = k.lc + k.uc;
+								}
+								// Escape # character for carpalx config formatting
+								if (keyStr.includes('#')) {
+									keyStr = keyStr.replace('#', '\\#');
+								}
+								keys.push(keyStr);
+								fingers.push(k.finger);
+							});
+							layoutStr += `<row ${r_idx + 1}>\n`;
+							layoutStr += `keys    = ${keys.join(' ')}\n`;
+							layoutStr += `fingers = ${fingers.join(' ')}\n`;
+							layoutStr += `</row>\n\n`;
+						});
+						layoutStr += "</keyboard>\n";
+
+						await navigator.clipboard.writeText(layoutStr);
+
+						this.copiedRecently = true;
+						elements.copyBtn.textContent = this.string('copied');
+						elements.copyBtn.classList.remove('secondary');
+						elements.copyBtn.classList.add('success');
+
+						setTimeout(() => {
+							this.copiedRecently = false;
+							elements.copyBtn.textContent = this.string('copyBtn');
+							elements.copyBtn.classList.remove('success');
+							elements.copyBtn.classList.add('secondary');
+						}, 2000);
+					} catch (e) {
+						console.error("Failed to copy layout", e);
+					}
 				}
 
 				resetParams() {
