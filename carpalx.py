@@ -473,21 +473,19 @@ class Keyboard:
                 hand_flag = 2 if h2 == h3 else 1
 
             finger_flag = 3
-            if f1 > f2:
-                if f2 > f3: finger_flag = 0
-                elif f2 == f3: finger_flag = 1 if k2['id'] == k3['id'] else 6
-                elif f3 == f1: finger_flag = 4
-                elif f1 > f3 and f3 > f2: finger_flag = 2
-            elif f1 < f2:
-                if f2 < f3: finger_flag = 0
-                elif f2 == f3: finger_flag = 1 if k2['id'] == k3['id'] else 6
-                elif f3 == f1: finger_flag = 4
-                elif f1 < f3 and f3 < f2: finger_flag = 2
-            elif f1 == f2:
-                if f2 < f3 or f3 < f1: finger_flag = 1 if k1['id'] == k2['id'] else 6
-                elif f2 == f3:
-                    if k1['id'] != k2['id'] and k2['id'] != k3['id'] and k1['id'] != k3['id']: finger_flag = 7
-                    else: finger_flag = 5
+            if f1 == f2:
+                if f2 == f3:
+                    finger_flag = 7 if (k1['id'] != k2['id'] and k2['id'] != k3['id'] and k1['id'] != k3['id']) else 5
+                else:
+                    finger_flag = 1 if k1['id'] == k2['id'] else 6
+            elif f2 == f3:
+                finger_flag = 1 if k2['id'] == k3['id'] else 6
+            elif f3 == f1:
+                finger_flag = 4
+            elif (f1 < f2 and f2 < f3) or (f1 > f2 and f2 > f3):
+                finger_flag = 0
+            elif (f1 < f3 and f3 < f2) or (f1 > f3 and f3 > f2):
+                finger_flag = 2
 
             row_flag = 0
             if r1 < r2:
