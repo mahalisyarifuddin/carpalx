@@ -176,24 +176,20 @@ class Carpalx {
             }
 
             let finger_flag = 3;
-            if (f1 > f2) {
-                if (f2 > f3) finger_flag = 0;
-                else if (f2 === f3) finger_flag = (k2.id === k3.id) ? 1 : 6;
-                else if (f3 === f1) finger_flag = 4;
-                else if (f1 > f3 && f3 > f2) finger_flag = 2;
-                else finger_flag = 3;
-            } else if (f1 < f2) {
-                if (f2 < f3) finger_flag = 0;
-                else if (f2 === f3) finger_flag = (k2.id === k3.id) ? 1 : 6;
-                else if (f3 === f1) finger_flag = 4;
-                else if (f1 < f3 && f3 < f2) finger_flag = 2;
-                else finger_flag = 3;
-            } else if (f1 === f2) {
-                if (f2 < f3 || f3 < f1) finger_flag = (k1.id === k2.id) ? 1 : 6;
-                else if (f2 === f3) {
-                    if (k1.id !== k2.id && k2.id !== k3.id && k1.id !== k3.id) finger_flag = 7;
-                    else finger_flag = 5;
+            if (f1 === f2) {
+                if (f2 === f3) {
+                    finger_flag = (k1.id !== k2.id && k2.id !== k3.id && k1.id !== k3.id) ? 7 : 5;
+                } else {
+                    finger_flag = (k1.id === k2.id) ? 1 : 6;
                 }
+            } else if (f2 === f3) {
+                finger_flag = (k2.id === k3.id) ? 1 : 6;
+            } else if (f3 === f1) {
+                finger_flag = 4;
+            } else if ((f1 < f2 && f2 < f3) || (f1 > f2 && f2 > f3)) {
+                finger_flag = 0;
+            } else if ((f1 < f3 && f3 < f2) || (f1 > f3 && f3 > f2)) {
+                finger_flag = 2;
             }
 
             let row_flag = 0;
