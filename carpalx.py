@@ -88,8 +88,8 @@ class Config:
             if not line or line.startswith('#'):
                 continue
 
-            if '#' in line:
-                line = line.split('#', 1)[0].strip()
+            # Strip inline comments while preserving escaped # characters (e.g. \#)
+            line = re.split(r'(?<!\\)#', line, maxsplit=1)[0].strip()
             if not line:
                 continue
 
@@ -347,9 +347,13 @@ class Keyboard:
             row_objs = []
             col_idx = 0
             for k, f in zip(keys_list, fingers_list):
-                if len(k) == 1: lc, uc = k, k.upper()
-                elif len(k) == 2: lc, uc = k[0], k[1]
-                else: lc, uc = k[0], k[1]
+                k_clean = k.replace('\\', '')
+                if len(k_clean) == 1:
+                    lc, uc = (k_clean.lower(), k_clean.upper()) if k_clean.isalpha() else (k_clean, k_clean)
+                elif len(k_clean) >= 2:
+                    lc, uc = k_clean[0], k_clean[1]
+                else:
+                    lc, uc = k, k
                 finger = int(f)
                 hand = 1 if finger > 4 else 0
                 key_obj = {
