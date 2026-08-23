@@ -22,3 +22,8 @@
 **Mode:** Bolt
 **Learning:** Triad effort calculation is the primary bottleneck in keyboard layout optimization. Since the effort model depends on fixed position-based penalties and path costs, the effort for all ^3$ position triads can be pre-calculated. This reduces the complexity of `calculateTriadEffort` from dozens of logic branches to a single O(1) lookup in a typed array, yielding a ~12.6x speedup.
 **Action:** For iterative optimization problems with cost functions dependent on fixed underlying geometry, pre-calculate the full cost tensor to eliminate redundant logic in innermost loops.
+
+## 2026-06-27 - [Escaped Character Configuration Parsing in Python]
+**Mode:** Medic
+**Learning:** Naively splitting configuration lines on `#` in `carpalx.py` stripped lines at escaped `#` characters (e.g. `3\#` in `qwerty.conf`), truncating row 1 from 13 keys down to 4 and corrupting effort calculations. Using regex negative lookbehind `re.split(r'(?<!\\)#', line, maxsplit=1)` and unescaping backslashes when extracting key symbols (`k_clean = k.replace('\\', '')`) preserves escaped characters while correctly stripping inline comments.
+**Action:** When parsing custom line formats containing optional escape sequences, avoid plain string `split` operations on delimiter characters; use negative lookbehinds or regex tokenizers to preserve escaped delimiters.
