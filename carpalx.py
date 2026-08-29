@@ -497,16 +497,20 @@ class Keyboard:
                 elif r2 < r3: row_flag = 4
                 else:
                     drmax_abs, drmax = abs(r1-r2), r1-r2
-                    for d, v in ((abs(r1-r3), r1-r3), (abs(r2-r3), r2-r3)):
-                        if d > drmax_abs or (d == drmax_abs and v < drmax): drmax_abs, drmax = d, v
+                    d1, v1 = abs(r1-r3), r1-r3
+                    if d1 > drmax_abs or (d1 == drmax_abs and v1 < drmax): drmax_abs, drmax = d1, v1
+                    d2, v2 = abs(r2-r3), r2-r3
+                    if d2 > drmax_abs or (d2 == drmax_abs and v2 < drmax): drmax_abs, drmax = d2, v2
                     row_flag = 3 if drmax_abs == 1 else (7 if drmax < 0 else 5)
             elif r1 > r2:
                 if r3 == r2: row_flag = 2
                 elif r2 > r3: row_flag = 6
                 else:
                     drmax_abs, drmax = abs(r1-r2), r1-r2
-                    for d, v in ((abs(r1-r3), r1-r3), (abs(r2-r3), r2-r3)):
-                        if d > drmax_abs or (d == drmax_abs and v < drmax): drmax_abs, drmax = d, v
+                    d1, v1 = abs(r1-r3), r1-r3
+                    if d1 > drmax_abs or (d1 == drmax_abs and v1 < drmax): drmax_abs, drmax = d1, v1
+                    d2, v2 = abs(r2-r3), r2-r3
+                    if d2 > drmax_abs or (d2 == drmax_abs and v2 < drmax): drmax_abs, drmax = d2, v2
                     row_flag = 3 if drmax_abs == 1 else (7 if drmax < 0 else 5)
             else:
                 if r2 > r3: row_flag = 2
