@@ -198,9 +198,10 @@ class Carpalx {
                 else if (r2 < r3) row_flag = 4;
                 else {
                     let drmax_abs = Math.abs(r1 - r2), drmax = r1 - r2;
-                    for (let [d, v] of [[Math.abs(r1 - r3), r1 - r3], [Math.abs(r2 - r3), r2 - r3]]) {
-                        if (d > drmax_abs || (d === drmax_abs && v < drmax)) { drmax_abs = d; drmax = v; }
-                    }
+                    let d1 = Math.abs(r1 - r3), v1 = r1 - r3;
+                    if (d1 > drmax_abs || (d1 === drmax_abs && v1 < drmax)) { drmax_abs = d1; drmax = v1; }
+                    let d2 = Math.abs(r2 - r3), v2 = r2 - r3;
+                    if (d2 > drmax_abs || (d2 === drmax_abs && v2 < drmax)) { drmax_abs = d2; drmax = v2; }
                     row_flag = (drmax_abs === 1) ? 3 : ((drmax < 0) ? 7 : 5);
                 }
             } else if (r1 > r2) {
@@ -208,9 +209,10 @@ class Carpalx {
                 else if (r2 > r3) row_flag = 6;
                 else {
                     let drmax_abs = Math.abs(r1 - r2), drmax = r1 - r2;
-                    for (let [d, v] of [[Math.abs(r1 - r3), r1 - r3], [Math.abs(r2 - r3), r2 - r3]]) {
-                        if (d > drmax_abs || (d === drmax_abs && v < drmax)) { drmax_abs = d; drmax = v; }
-                    }
+                    let d1 = Math.abs(r1 - r3), v1 = r1 - r3;
+                    if (d1 > drmax_abs || (d1 === drmax_abs && v1 < drmax)) { drmax_abs = d1; drmax = v1; }
+                    let d2 = Math.abs(r2 - r3), v2 = r2 - r3;
+                    if (d2 > drmax_abs || (d2 === drmax_abs && v2 < drmax)) { drmax_abs = d2; drmax = v2; }
                     row_flag = (drmax_abs === 1) ? 3 : ((drmax < 0) ? 7 : 5);
                 }
             } else {
