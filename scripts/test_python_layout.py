@@ -30,5 +30,35 @@ class TestPythonLayout(unittest.TestCase):
 
         self.assertAlmostEqual(effort, 3.527854, places=5)
 
+    def test_keyboard_save_and_reload(self):
+        import tempfile
+        conf_file = 'etc/carpalx.conf'
+        if not os.path.exists(conf_file):
+            conf_file = os.path.join(os.path.dirname(__file__), '..', 'etc', 'carpalx.conf')
+
+        app = Carpalx(conf_file)
+        app.load_keyboard()
+        corpus_path = os.path.join(os.path.dirname(__file__), 'test_corpus.txt')
+        app.config['corpus'] = corpus_path
+        app.load_triads()
+
+        effort_orig = app.keyboard.calculate_effort(app.triads)
+
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.conf') as tmp:
+            tmp_path = tmp.name
+
+        try:
+            app.keyboard.save(tmp_path)
+
+            from carpalx import Keyboard
+            reloaded_kb = Keyboard(tmp_path, app.config)
+
+            self.assertEqual(len(reloaded_kb.keys[0]), 13, "Saved and reloaded layout should keep 13 keys on row 1")
+            effort_reloaded = reloaded_kb.calculate_effort(app.triads)
+            self.assertAlmostEqual(effort_reloaded, effort_orig, places=5)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
 if __name__ == '__main__':
     unittest.main()

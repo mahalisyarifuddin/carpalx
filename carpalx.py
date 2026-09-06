@@ -550,6 +550,8 @@ class Keyboard:
                 for k in row:
                     if k['lc'] == k['uc'].lower(): ks = k['lc']
                     else: ks = k['lc'] + k['uc']
+                    # Escape '#' so Config._parse_file does not treat it as an inline comment delimiter
+                    ks = ks.replace('#', r'\#')
                     keys.append(ks)
                     fingers.append(str(k['finger']))
                 f.write(f"<row {r_idx+1}>\n")
