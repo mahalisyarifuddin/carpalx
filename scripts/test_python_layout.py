@@ -60,5 +60,38 @@ class TestPythonLayout(unittest.TestCase):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+    def test_corpus_triads_overlap_setting(self):
+        import tempfile
+        conf_file = 'etc/carpalx.conf'
+        if not os.path.exists(conf_file):
+            conf_file = os.path.join(os.path.dirname(__file__), '..', 'etc', 'carpalx.conf')
+
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as tmp_corpus:
+            tmp_corpus.write("abcdefgh\n")
+            tmp_corpus_path = tmp_corpus.name
+
+        try:
+            # Test non-overlapping triads (step = 3) -> "abc", "def"
+            app_no = Carpalx(conf_file)
+            app_no.config['corpus'] = tmp_corpus_path
+            app_no.config['triads_overlap'] = 'no'
+            app_no.load_keyboard()
+            app_no.load_triads()
+            self.assertEqual(sum(app_no.triads.values()), 2)
+            self.assertIn('abc', app_no.triads)
+            self.assertIn('def', app_no.triads)
+
+            # Test overlapping triads (step = 1) -> "abc", "bcd", "cde", "def", "efg", "fgh"
+            app_yes = Carpalx(conf_file)
+            app_yes.config['corpus'] = tmp_corpus_path
+            app_yes.config['triads_overlap'] = 'yes'
+            app_yes.load_keyboard()
+            app_yes.load_triads()
+            self.assertEqual(sum(app_yes.triads.values()), 6)
+            self.assertIn('bcd', app_yes.triads)
+        finally:
+            if os.path.exists(tmp_corpus_path):
+                os.remove(tmp_corpus_path)
+
 if __name__ == '__main__':
     unittest.main()

@@ -653,7 +653,8 @@ class Corpus:
                 if reject_char_rx: line = re.sub(reject_char_rx, '', line)
                 line = re.sub(r'\s', '', line)
                 accept_repeats = mode.get('accept_repeats', 'yes') in ['yes', '1', 1, True]
-                for i in range(len(line) - 2):
+                step = 1 if triads_overlap else 3
+                for i in range(0, len(line) - 2, step):
                     triad = line[i:i+3]
                     if not accept_repeats and triad[0] == triad[1] == triad[2]:
                         continue
