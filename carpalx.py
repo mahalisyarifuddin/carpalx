@@ -749,7 +749,11 @@ class SimulatedAnnealing(OptimizerBase):
         return best_swap, current_effort + (best_delta / self.total_freq)
 
     def run(self):
-        if not self.total_freq: return self.keyboard
+        # Prevent infinite loops when insufficient relocatable keys exist for swapping
+        if not self.total_freq or len(self.relocatable) < 2: return self.keyboard
+        if self.restrict_same_row and not any(len(keys) >= 2 for keys in self.relocatable_by_row.values()):
+            return self.keyboard
+
         current_effort = self.keyboard.calculate_effort(self.triads)
         current_weighted_effort = current_effort * self.total_freq
         print(f"Initial Effort: {current_effort}")
@@ -757,7 +761,7 @@ class SimulatedAnnealing(OptimizerBase):
         best_weighted_effort = current_weighted_effort
 
         for i in range(1, self.iterations + 1):
-            if not self.relocatable: break
+            if len(self.relocatable) < 2: break
             k1 = random.choice(self.relocatable)
             if self.restrict_same_row:
                 same_row = self.relocatable_by_row[k1[0]]
@@ -800,7 +804,11 @@ class LateAcceptanceHillClimbing(OptimizerBase):
         self.history_size = int(self.params.get('history_size', 500))
 
     def run(self):
-        if not self.total_freq: return self.keyboard
+        # Prevent infinite loops when insufficient relocatable keys exist for swapping
+        if not self.total_freq or len(self.relocatable) < 2: return self.keyboard
+        if self.restrict_same_row and not any(len(keys) >= 2 for keys in self.relocatable_by_row.values()):
+            return self.keyboard
+
         current_effort = self.keyboard.calculate_effort(self.triads)
         current_weighted_effort = current_effort * self.total_freq
 
@@ -811,7 +819,7 @@ class LateAcceptanceHillClimbing(OptimizerBase):
         print(f"Initial Effort: {current_effort}")
 
         for i in range(1, self.iterations + 1):
-            if not self.relocatable: break
+            if len(self.relocatable) < 2: break
             k1 = random.choice(self.relocatable)
             if self.restrict_same_row:
                 same_row = self.relocatable_by_row[k1[0]]
