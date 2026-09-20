@@ -93,5 +93,30 @@ class TestPythonLayout(unittest.TestCase):
             if os.path.exists(tmp_corpus_path):
                 os.remove(tmp_corpus_path)
 
+    def test_optimization_with_insufficient_relocatable_keys(self):
+        from carpalx import SimulatedAnnealing, LateAcceptanceHillClimbing
+        conf_file = 'etc/carpalx.conf'
+        if not os.path.exists(conf_file):
+            conf_file = os.path.join(os.path.dirname(__file__), '..', 'etc', 'carpalx.conf')
+
+        app = Carpalx(conf_file)
+        app.load_keyboard()
+        corpus_path = os.path.join(os.path.dirname(__file__), 'test_corpus.txt')
+        app.config['corpus'] = corpus_path
+        app.load_triads()
+
+        # Set mask_row so that only 1 key is relocatable
+        app.config['mask_row'] = {'1': {'mask': '1 0 0 0 0 0 0 0 0 0 0 0 0'}}
+
+        sa = SimulatedAnnealing(app.keyboard, app.triads, app.config)
+        self.assertEqual(len(sa.relocatable), 1)
+        res_sa = sa.run()
+        self.assertIsNotNone(res_sa)
+
+        lahc = LateAcceptanceHillClimbing(app.keyboard, app.triads, app.config)
+        self.assertEqual(len(lahc.relocatable), 1)
+        res_lahc = lahc.run()
+        self.assertIsNotNone(res_lahc)
+
 if __name__ == '__main__':
     unittest.main()
