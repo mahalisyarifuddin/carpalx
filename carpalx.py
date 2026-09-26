@@ -313,18 +313,12 @@ class Keyboard:
         # Attempt to resolve layout file path
         if os.path.exists(path): return path
 
-        # Check relative to config dir
-        conf_dir = self.config.get('config_dir_path_XXX', '') # Config object does not store it in data dict, but we need it.
-        # Since Config parser is external, we might not have easy access to config_dir here unless we passed it.
-        # But we can use Config object again if we want.
-
         # Try searching in standard locations
         search_paths = ['etc', 'etc/keyboards', 'keyboards']
         for sp in search_paths:
              p = os.path.join(sp, path)
              if os.path.exists(p): return p
 
-        # Also try relative to ../etc if running from bin?
         return path
 
     def _load_layout(self, layout_file):
@@ -678,12 +672,10 @@ class OptimizerBase:
         self.history = []
 
         # Incremental update support
-        self.char_to_triads = defaultdict(list)
+        self.char_to_triads = defaultdict(set)
         for triad in self.triads:
             for char in triad:
-                self.char_to_triads[char].append(triad)
-        for char in self.char_to_triads:
-            self.char_to_triads[char] = list(set(self.char_to_triads[char]))
+                self.char_to_triads[char].add(triad)
         self.total_freq = sum(v for k, v in self.triads.items() if len(k) == 3 and all(c in self.keyboard.map for c in k))
 
     def _get_relocatable_keys(self):
