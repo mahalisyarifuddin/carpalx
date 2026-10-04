@@ -1143,17 +1143,17 @@
 					<div class="row">
 						<div id="fullParams" class="group row" style="gap: 0.5rem; margin-bottom: 0;">
 							<div class="group">
-								<label id="iterationsLimitLabel">Iterations</label>
+								<label id="iterationsLimitLabel" for="maxIterations">Iterations</label>
 								<input type="number" id="maxIterations" value="5000">
 							</div>
 							<div class="group hidden" id="historySizeGroup">
-								<label id="historySizeLabel">History Size</label>
+								<label id="historySizeLabel" for="historySize">History Size</label>
 								<input type="number" id="historySize" value="500">
 							</div>
 						</div>
 						<div id="partialParams" class="group row hidden" style="gap: 0.5rem; margin-bottom: 0;">
 							<div class="group">
-								<label id="maxSwapsLabel">Max Swaps</label>
+								<label id="maxSwapsLabel" for="maxSwaps">Max Swaps</label>
 								<input type="number" id="maxSwaps" value="10">
 							</div>
 						</div>
@@ -1171,61 +1171,61 @@
 					</div>
 					<div class="grid-params">
 						<div class="group">
-							<label id="kb_label">kb</label>
+							<label id="kb_label" for="kb">kb</label>
 							<input type="number" step="0.001" id="kb" value="0.3555">
 						</div>
 						<div class="group">
-							<label id="kp_label">kp</label>
+							<label id="kp_label" for="kp">kp</label>
 							<input type="number" step="0.001" id="kp" value="0.6423">
 						</div>
 						<div class="group">
-							<label id="ks_label">ks</label>
+							<label id="ks_label" for="ks">ks</label>
 							<input type="number" step="0.001" id="ks" value="0.4268">
 						</div>
 						<div class="group">
-							<label id="k1_label">k1</label>
+							<label id="k1_label" for="k1">k1</label>
 							<input type="number" step="0.001" id="k1" value="1">
 						</div>
 						<div class="group">
-							<label id="k2_label">k2</label>
+							<label id="k2_label" for="k2">k2</label>
 							<input type="number" step="0.001" id="k2" value="0.367">
 						</div>
 						<div class="group">
-							<label id="k3_label">k3</label>
+							<label id="k3_label" for="k3">k3</label>
 							<input type="number" step="0.001" id="k3" value="0.235">
 						</div>
 					</div>
 					<div class="grid-params" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
 						<div class="group">
-							<label id="w0_label">w0</label>
+							<label id="w0_label" for="w0">w0</label>
 							<input type="number" step="0.1" id="w0" value="0">
 						</div>
 						<div class="group">
-							<label id="wh_label">wh</label>
+							<label id="wh_label" for="wh">wh</label>
 							<input type="number" step="0.1" id="wh" value="1">
 						</div>
 						<div class="group">
-							<label id="wr_label">wr</label>
+							<label id="wr_label" for="wr">wr</label>
 							<input type="number" step="0.1" id="wr" value="1.3088">
 						</div>
 						<div class="group">
-							<label id="wf_label">wf</label>
+							<label id="wf_label" for="wf">wf</label>
 							<input type="number" step="0.1" id="wf" value="2.5948">
 						</div>
 						<div class="group">
-							<label id="fh_label">fh</label>
+							<label id="fh_label" for="fh">fh</label>
 							<input type="number" step="0.1" id="fh" value="1">
 						</div>
 						<div class="group">
-							<label id="fr_label">fr</label>
+							<label id="fr_label" for="fr">fr</label>
 							<input type="number" step="0.1" id="fr" value="0.3">
 						</div>
 						<div class="group">
-							<label id="ff_label">ff</label>
+							<label id="ff_label" for="ff">ff</label>
 							<input type="number" step="0.1" id="ff" value="0.3">
 						</div>
 						<div class="group">
-							<label id="path_offset_label">poffset</label>
+							<label id="path_offset_label" for="path_offset">poffset</label>
 							<input type="number" step="0.1" id="path_offset" value="0">
 						</div>
 					</div>
@@ -1233,17 +1233,17 @@
 						<div class="group" style="flex: 1;">
 							<label id="rowPenaltiesLabel">Row Penalties (0-3)</label>
 							<div class="grid-params" style="grid-template-columns: repeat(4, 1fr);">
-								<input type="number" step="0.1" id="Pr_0" value="1.5">
-								<input type="number" step="0.1" id="Pr_1" value="0.5">
-								<input type="number" step="0.1" id="Pr_2" value="0">
-								<input type="number" step="0.1" id="Pr_3" value="1">
+								<input type="number" step="0.1" id="Pr_0" value="1.5" aria-label="Row 0 Penalty">
+								<input type="number" step="0.1" id="Pr_1" value="0.5" aria-label="Row 1 Penalty">
+								<input type="number" step="0.1" id="Pr_2" value="0" aria-label="Row 2 Penalty">
+								<input type="number" step="0.1" id="Pr_3" value="1" aria-label="Row 3 Penalty">
 							</div>
 						</div>
 						<div class="group" style="flex: 0.5;">
 							<label id="handPenaltiesLabel">Hand Penalties (L, R)</label>
 							<div class="grid-params" style="grid-template-columns: repeat(2, 1fr);">
-								<input type="number" step="0.1" id="Ph_L" value="0">
-								<input type="number" step="0.1" id="Ph_R" value="0">
+								<input type="number" step="0.1" id="Ph_L" value="0" aria-label="Left Hand Penalty">
+								<input type="number" step="0.1" id="Ph_R" value="0" aria-label="Right Hand Penalty">
 							</div>
 						</div>
 					</div>
@@ -1251,16 +1251,16 @@
 						<div class="group">
 							<label id="fingerPenaltiesLabel">Finger Penalties (L-Pinky to R-Pinky)</label>
 							<div class="grid-params" style="grid-template-columns: repeat(10, 1fr);">
-								<input type="number" step="0.1" id="Pf_L0" value="1">
-								<input type="number" step="0.1" id="Pf_L1" value="0.5">
-								<input type="number" step="0.1" id="Pf_L2" value="0">
-								<input type="number" step="0.1" id="Pf_L3" value="0">
-								<input type="number" step="0.1" id="Pf_L4" value="0">
-								<input type="number" step="0.1" id="Pf_R0" value="0">
-								<input type="number" step="0.1" id="Pf_R1" value="0">
-								<input type="number" step="0.1" id="Pf_R2" value="0">
-								<input type="number" step="0.1" id="Pf_R3" value="0.5">
-								<input type="number" step="0.1" id="Pf_R4" value="1">
+								<input type="number" step="0.1" id="Pf_L0" value="1" aria-label="Left Pinky Penalty">
+								<input type="number" step="0.1" id="Pf_L1" value="0.5" aria-label="Left Ring Penalty">
+								<input type="number" step="0.1" id="Pf_L2" value="0" aria-label="Left Middle Penalty">
+								<input type="number" step="0.1" id="Pf_L3" value="0" aria-label="Left Index Penalty">
+								<input type="number" step="0.1" id="Pf_L4" value="0" aria-label="Left Thumb Penalty">
+								<input type="number" step="0.1" id="Pf_R0" value="0" aria-label="Right Thumb Penalty">
+								<input type="number" step="0.1" id="Pf_R1" value="0" aria-label="Right Index Penalty">
+								<input type="number" step="0.1" id="Pf_R2" value="0" aria-label="Right Middle Penalty">
+								<input type="number" step="0.1" id="Pf_R3" value="0.5" aria-label="Right Ring Penalty">
+								<input type="number" step="0.1" id="Pf_R4" value="1" aria-label="Right Pinky Penalty">
 							</div>
 						</div>
 					</div>
