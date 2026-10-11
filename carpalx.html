@@ -2688,6 +2688,21 @@
 					this.saveState();
 				}
 
+				getRelocatableByRow(relocatable) {
+					const relocatableByRow = {};
+					if (this.carpalx.restrictSameRow) {
+						this.populateRelocatableByRow(relocatableByRow, relocatable);
+					}
+					return relocatableByRow;
+				}
+
+				populateRelocatableByRow(relocatableByRow, relocatable) {
+					relocatable.forEach(rk => {
+						if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
+						if (!relocatableByRow[rk[0]].includes(rk)) relocatableByRow[rk[0]].push(rk);
+					});
+				}
+
 				async runFullOptimization(triads) {
 					const maxIterations = parseInt(elements.maxIterations.value) || 5000;
 					const t0 = 10;
@@ -2709,13 +2724,7 @@
 						uc: k.uc
 					})));
 
-					const relocatableByRow = {};
-					if (this.carpalx.restrictSameRow) {
-						relocatable.forEach(rk => {
-							if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
-							relocatableByRow[rk[0]].push(rk);
-						});
-					}
+					const relocatableByRow = this.getRelocatableByRow(relocatable);
 
 					for (let i = 1; i <= maxIterations && this.optimizing; i++) {
 						const k1_idx = Math.floor(Math.random() * relocatable.length);
@@ -2724,10 +2733,7 @@
 
 						if (this.carpalx.restrictSameRow) {
 							if (!relocatableByRow[k1[0]]) {
-								relocatable.forEach(rk => {
-									if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
-									if (!relocatableByRow[rk[0]].includes(rk)) relocatableByRow[rk[0]].push(rk);
-								});
+								this.populateRelocatableByRow(relocatableByRow, relocatable);
 							}
 							const sameRowKeys = relocatableByRow[k1[0]];
 							if (sameRowKeys.length < 2) continue;
@@ -2816,13 +2822,7 @@
 
 					elements.temperature.textContent = 'N/A';
 
-					const relocatableByRow = {};
-					if (this.carpalx.restrictSameRow) {
-						relocatable.forEach(rk => {
-							if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
-							relocatableByRow[rk[0]].push(rk);
-						});
-					}
+					const relocatableByRow = this.getRelocatableByRow(relocatable);
 
 					for (let i = 1; i <= maxIterations && this.optimizing; i++) {
 						const k1_idx = Math.floor(Math.random() * relocatable.length);
@@ -2831,10 +2831,7 @@
 
 						if (this.carpalx.restrictSameRow) {
 							if (!relocatableByRow[k1[0]]) {
-								relocatable.forEach(rk => {
-									if (!relocatableByRow[rk[0]]) relocatableByRow[rk[0]] = [];
-									if (!relocatableByRow[rk[0]].includes(rk)) relocatableByRow[rk[0]].push(rk);
-								});
+								this.populateRelocatableByRow(relocatableByRow, relocatable);
 							}
 							const sameRowKeys = relocatableByRow[k1[0]];
 							if (sameRowKeys.length < 2) continue;
