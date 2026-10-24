@@ -118,5 +118,22 @@ class TestPythonLayout(unittest.TestCase):
         res_lahc = lahc.run()
         self.assertIsNotNone(res_lahc)
 
+    def test_unmapped_triad_optimization_handling(self):
+        from carpalx import SimulatedAnnealing
+        conf_file = 'etc/carpalx.conf'
+        if not os.path.exists(conf_file):
+            conf_file = os.path.join(os.path.dirname(__file__), '..', 'etc', 'carpalx.conf')
+
+        app = Carpalx(conf_file)
+        app.load_keyboard()
+
+        # Supply triads dictionary containing unmapped/unsupported characters (e.g. non-ascii 'ñ', '€', 'Ω')
+        unmapped_triads = {'abc': 10, 'ñ€Ω': 5, 'añb': 3}
+        app.config['annealing']['iterations'] = 10
+        sa = SimulatedAnnealing(app.keyboard, unmapped_triads, app.config)
+        # Should complete without KeyError or exceptions
+        res_sa = sa.run()
+        self.assertIsNotNone(res_sa)
+
 if __name__ == '__main__':
     unittest.main()
