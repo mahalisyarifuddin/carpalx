@@ -302,6 +302,7 @@ class Keyboard:
         self.layout_file = layout_file
         self.keys = []
         self.map = {}
+        self.map_id = {}
         self.positions = []
         self.num_positions = 0
         self.path_cache = []
@@ -363,6 +364,8 @@ class Keyboard:
                 row_objs.append(key_obj)
                 self.map[lc] = key_obj
                 self.map[uc] = key_obj
+                self.map_id[lc] = pos_id
+                self.map_id[uc] = pos_id
                 self.positions.append(key_obj)
                 pos_id += 1
                 col_idx += 1
@@ -527,11 +530,9 @@ class Keyboard:
     def get_triad_effort(self, triad):
         # Optimization: Pre-calculated position triad effort lookup
         try:
-            k1 = self.map[triad[0]]
-            k2 = self.map[triad[1]]
-            k3 = self.map[triad[2]]
+            m = self.map_id
             n = self.num_positions
-            return self.pos_triad_efforts[k1['id'] * n * n + k2['id'] * n + k3['id']]
+            return self.pos_triad_efforts[m[triad[0]] * n * n + m[triad[1]] * n + m[triad[2]]]
         except (KeyError, IndexError):
             return 0
 
@@ -565,6 +566,10 @@ class Keyboard:
         self.map[key1['uc']] = key1
         self.map[key2['lc']] = key2
         self.map[key2['uc']] = key2
+        self.map_id[key1['lc']] = key1['id']
+        self.map_id[key1['uc']] = key1['id']
+        self.map_id[key2['lc']] = key2['id']
+        self.map_id[key2['uc']] = key2['id']
 
     def get_layout(self):
         return [(k['lc'], k['uc']) for k in self.positions]
@@ -576,6 +581,8 @@ class Keyboard:
             key['uc'] = uc
             self.map[lc] = key
             self.map[uc] = key
+            self.map_id[lc] = key['id']
+            self.map_id[uc] = key['id']
 
     def plot(self, title="Keyboard Layout"):
         if not plt or not patches:
@@ -672,10 +679,13 @@ class OptimizerBase:
         self.history = []
 
         # Incremental update support
+        self.triad_items = [(t[0], t[1], t[2], f) for t, f in self.triads.items() if len(t) == 3 and all(c in self.keyboard.map_id for c in t)]
         self.char_to_triads = defaultdict(set)
-        for triad in self.triads:
-            for char in triad:
-                self.char_to_triads[char].add(triad)
+        for item in self.triad_items:
+            c0, c1, c2, f = item
+            self.char_to_triads[c0].add(item)
+            self.char_to_triads[c1].add(item)
+            self.char_to_triads[c2].add(item)
         self.total_freq = sum(v for k, v in self.triads.items() if len(k) == 3 and all(c in self.keyboard.map for c in k))
 
     def _get_relocatable_keys(self):
@@ -697,9 +707,20 @@ class OptimizerBase:
         affected_triads.update(self.char_to_triads[key2['lc']])
         affected_triads.update(self.char_to_triads[key2['uc']])
 
-        effort_before = sum(self.keyboard.get_triad_effort(t) * self.triads[t] for t in affected_triads)
+        m = self.keyboard.map_id
+        n = self.keyboard.num_positions
+        n2 = n * n
+        efforts = self.keyboard.pos_triad_efforts
+
+        effort_before = 0.0
+        for c0, c1, c2, freq in affected_triads:
+            effort_before += efforts[m[c0] * n2 + m[c1] * n + m[c2]] * freq
+
         self.keyboard.swap_keys(k1, k2)
-        effort_after = sum(self.keyboard.get_triad_effort(t) * self.triads[t] for t in affected_triads)
+
+        effort_after = 0.0
+        for c0, c1, c2, freq in affected_triads:
+            effort_after += efforts[m[c0] * n2 + m[c1] * n + m[c2]] * freq
 
         return effort_after - effort_before
 

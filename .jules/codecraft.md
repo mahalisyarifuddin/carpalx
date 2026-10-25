@@ -27,3 +27,8 @@
 **Mode:** Medic
 **Learning:** Naively splitting configuration lines on `#` in `carpalx.py` stripped lines at escaped `#` characters (e.g. `3\#` in `qwerty.conf`), truncating row 1 from 13 keys down to 4 and corrupting effort calculations. Using regex negative lookbehind `re.split(r'(?<!\\)#', line, maxsplit=1)` and unescaping backslashes when extracting key symbols (`k_clean = k.replace('\\', '')`) preserves escaped characters while correctly stripping inline comments.
 **Action:** When parsing custom line formats containing optional escape sequences, avoid plain string `split` operations on delimiter characters; use negative lookbehinds or regex tokenizers to preserve escaped delimiters.
+
+## 2026-07-04 - [Direct Position Mapping and Unpacked Triad Evaluation in Python]
+**Mode:** Bolt
+**Learning:** Evaluating affected triads during simulated annealing delta calculation was a major bottleneck in Python. Millions of calls to `get_triad_effort(t)` incurred repeated dictionary lookups (`self.map[char]['id']`), method call overhead, generator expression allocations in `sum(...)`, and string indexing `t[0]`. Creating a `map_id` dict (`char -> pos_id`) and pre-unpacking `(c0, c1, c2, freq)` tuples in `OptimizerBase` accelerated delta evaluation by ~2x (10.6s -> 5.5s for 5,000 iterations).
+**Action:** In high-frequency inner loops in Python, avoid generator expressions and repeated nested dictionary lookups; pre-map strings to primitive integer IDs and unpack tuple items into local loop variables.
